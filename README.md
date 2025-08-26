@@ -1,6 +1,6 @@
 # CosyCalender
 
-CosyCalender is a simple, ambient-themed calendar web app. It features a dynamic background that changes every 5 minutes, a live clock, and a calendar card that updates automatically at midnight.
+CosyCalender is a simple, ambient-themed calendar web app built to run as a webserver. It is specifically designed to revitalize old iPads and tablets by turning them into useful side screens with a live clock and dynamic calendar.
 
 ## Features
 - Ambient mode with random background images from `ambient-images/images.json`
@@ -8,6 +8,7 @@ CosyCalender is a simple, ambient-themed calendar web app. It features a dynamic
 - Live clock with 12/24 hour support
 - Calendar card updates at midnight
 - Multiple color themes
+- Optimized for older iPads and tablets
 
 ## Getting Started
 
@@ -34,7 +35,7 @@ Start the server:
 ```sh
 node server.js
 ```
-Then open your browser and go to `http://localhost:3000` (or the port specified in your server).
+Then open your browser or tablet and go to `http://localhost:3000` (or the port specified in your server).
 
 ## Folder Structure
 - `public/` - Main frontend files
@@ -50,7 +51,7 @@ Then open your browser and go to `http://localhost:3000` (or the port specified 
 - Modify themes in `script.js` as needed.
 
 ## License
-MIT
+Apache
 
 ## Author
 FamTheMystery
