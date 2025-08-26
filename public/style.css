@@ -1,0 +1,528 @@
+/* General Reset + Font */
+html { height: 100%; }
+:root {
+  /* Core theme variables (colors referenced throughout the UI) */
+  --bg: #d6a9cc;
+  --text: #6d3b5a;
+  --card-bg: #ffe4ee;
+  --card-text: #a85c7a;
+  --accent: #a85c7a;
+  --muted: rgba(160,110,140,0.06);
+  --today-bg: #f8d6e5;
+  --today-text: #a85c7a;
+  --today-shadow: 0 2px 6px rgba(168, 92, 122, 0.18);
+  /* Shadow variables (theme can override these) */
+  --card-shadow: 0 8px 24px rgba(168, 92, 122, 0.18);
+  --card-shadow-strong: 0 12px 36px rgba(168, 92, 122, 0.12);
+  --card-drag-shadow: 0 18px 48px rgba(168, 92, 122, 0.18);
+  --btn-shadow: 0 2px 8px rgba(168,92,122,0.08);
+  --active-btn-shadow: 0 6px 18px rgba(168,92,122,0.08);
+  --hover-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  --drag-badge-shadow: 0 6px 18px rgba(168,92,122,0.12);
+  --menu-bg: #fff7fb;
+  --menu-text: #6d3b5a;
+  --menu-shadow: 2px 0 24px rgba(0,0,0,0.12);
+  --btn-border: rgba(0,0,0,0.06);
+}
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Quicksand', sans-serif;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s ease, color 0.2s ease;
+  color: var(--text);
+}
+
+/* page container to give consistent outer padding on smaller viewports */
+.container {
+  width: 100%;
+  padding: 20px; /* outer breathing room on iPad */
+  box-sizing: border-box;
+}
+
+/* Layout: default to flex-based layout (more compatible with older iOS) */
+.main-layout {
+  display: -webkit-box; /* legacy iOS flex fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 60vh; /* avoid vertical squeeze on iPad */
+  padding: 12px;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Left column wrapper (added by JS for older devices). Stacks the two small cards vertically. */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 18px; /* Equal spacing between cards */
+  max-width: 300px;
+  margin-right: 28px; /* keep a comfortable gap to the calendar */
+  flex: 0 0 260px; /* narrower left column so calendar gets more width */
+  align-self: stretch; /* ensure column stretches to match calendar height */
+}
+
+.left-column .card {
+  flex: 0 0 auto; /* all cards default to natural size */
+  margin-bottom: 0; /* gap handles spacing */
+}
+
+/* --- iOS 10 & older: fallback for no gap support and fix tasks scroll bug ---
+.ios-old .left-column {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+}
+.ios-old .left-column .card {
+  margin-bottom: 18px !important; /* fallback for gap 
+}
+.ios-old .left-column .card:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Fix tasks scroll bug for iOS 10: Use max-height and remove flex on .tasks-inner
+.ios-old .tasks-card .tasks-inner {
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  max-height: 60vh !important;
+  min-height: 0 !important;
+   flex: 1 1 auto !important; 
+}
+
+/* Optionally, for best compatibility, set .tasks-card to flex none on iOS-old
+.ios-old .tasks-card {
+  display: flex !important;
+} */
+
+/* Clock card and extra card spacing in all browsers */
+.left-column .clock-card {
+  margin-bottom: 18px;
+}
+.left-column .extra-card {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Secondary clock card: ensure spacing and alignment with the other left-column cards */
+.left-column .secondary-clock-card {
+  min-height: 48px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 10px 12px;
+}
+.left-column .secondary-clock-card .secondary-clock {
+  font-size: 1.05em;
+  color: var(--card-text);
+}
+
+/* --- End iOS fallback --- */
+
+.left-column .tasks-card {
+  flex: 1 1 0;        /* fill remaining space */
+  min-height: 0;
+  max-height: 60vh;   /* fix flexbox overflow issues */
+  display: block;
+}
+
+.left-column .card:first-child { margin-top: 0; } /* Remove top margin for true equal spacing */
+
+/* Ensure both columns behave as flex columns and allow children to shrink/grow correctly */
+.left-column, .calendar-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow flex children to control height */
+}
+
+/* Make the calendar content expand to fill the calendar-card so both columns match height */
+.calendar-card > .calendar {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+}
+
+/* calendar should take remaining space */
+.calendar-card { flex: 1 1 auto; }
+
+
+.card {
+  background: var(--card-bg);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: background 0.3s, box-shadow 0.3s, color 0.2s;
+  color: var(--card-text);
+  font-size: 2em;
+  box-sizing: border-box;
+}
+
+/* Specific Cards (layout is controlled by flex or grid via @supports) */
+.calendar-card { font-size: 1.6em; text-align: center; padding: 12px 12px; box-sizing: border-box; }
+
+.calendar {
+  width: 100%;
+}
+
+.calendar h2 {
+  margin: 0 0 16px;
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+.calendar table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.calendar th, .calendar td {
+  padding: 12px 8px;
+  text-align: center;
+  color: var(--card-text);
+  font-size: 1em;
+}
+
+.calendar th {
+  font-weight: 600;
+  color: var(--accent);
+  padding-bottom: 14px;
+}
+
+
+/* Today highlight */
+.calendar td.today {
+  background: var(--today-bg);
+  border-radius: 50%;
+  font-weight: bold;
+  color: var(--today-text);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box; /* ensure padding/width interplay doesn't distort shape */
+  padding: 0 !important;   /* override table cell padding so width/height form a circle */
+  border: var(--today-border, none); /* Use the border if defined in the theme, otherwise none */
+  line-height: 1;
+  vertical-align: middle;
+  overflow: hidden;
+  margin: 0 auto;
+  margin-top: 4px;
+  box-shadow: var(--today-shadow);
+}
+
+
+/* Dark Mode Button */
+.menu-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--menu-btn-bg);
+  border: none;
+  box-shadow: var(--btn-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  cursor: pointer;
+}
+.menu-btn span { display: block; width: 22px; height: 2px; background: var(--menu-btn-span); margin: 3px 0; border-radius: 2px; }
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 300px;
+  height: 100vh;
+  background: var(--menu-bg);
+  box-shadow: var(--menu-shadow);
+  transition: left 0.28s ease;
+  z-index: 1200;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reset-theme-btn { margin-top:8px; padding:10px 14px; border-radius:12px; background:#ffdfe9; color:#7a3a57; border:none; cursor:pointer; }
+
+/* Buttons that should match the active theme (e.g., refresh button) */
+.themed-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--btn-border);
+  cursor: pointer;
+  background: var(--card-bg);
+  color: var(--card-text);
+}
+.tasks-refresh-btn {
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  color: var(--card-text);
+  border: 1px solid var(--btn-border);
+}
+.tasks-refresh-btn svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+.tasks-refresh-btn:hover { transform: translateY(-1px); box-shadow: var(--hover-shadow); }
+.tasks-card { position: relative; }
+.tasks-card { padding: 12px 14px; font-size: 0.95em; text-align: left; position: relative; display: flex; flex-direction: column; }
+/* Navy Blue Mode */
+.side-menu.open { left: 0; }
+.side-menu-inner { padding: 24px; color: var(--menu-text); }
+
+/* Make the inner container scrollable and include padding in height calculations so
+   the close button and other fixed elements remain reachable on small screens. */
+.side-menu-inner {
+  box-sizing: border-box;
+  max-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.side-menu h3 { margin: 0 0 12px; font-size: 1.2em; color: var(--accent); }
+.close-menu-btn {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  color: var(--card-text);
+  cursor: pointer;
+}
+
+/* Settings panel controls (global) */
+.side-menu input[type="text"],
+.side-menu select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  box-sizing: border-box;
+}
+.side-menu button {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
+  background: var(--card-bg);
+  color: var(--card-text);
+  cursor: pointer;
+}
+.theme-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.theme-btns button { min-width: 120px; padding: 10px 14px; font-size: 1em; }
+.side-menu button.active { box-shadow: var(--active-btn-shadow); }
+.side-menu label { color: #6d3b5a; }
+
+
+/* Settings controls inherit colours from CSS variables so themes can drive them */
+.side-menu input[type="text"],
+.side-menu select {
+  background: var(--menu-bg);
+  color: var(--menu-text);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.side-menu button {
+  background: var(--card-bg);
+  color: var(--card-text);
+}
+.side-menu label { color: var(--menu-text); }
+
+
+/* Side menu text should use the menu-text variable so themes can control it */
+#sideMenuText { color: var(--menu-text); }
+
+/* Placeholder colour respects theme via --menu-text with reduced opacity */
+.side-menu input::placeholder { color: rgba( var(--menu-text-rgb, 109,59,90), 0.6); }
+
+/* Theme variables and per-mode visuals are now controlled centrally by JS (themeMap).
+  Mode-specific CSS blocks were removed to keep stylesheet concise — use CSS vars. */
+
+.menu-overlay { position: fixed; inset: 0; background: var(--menu-overlay); opacity: 0; visibility: hidden; transition: opacity 0.2s; z-index: 1100; }
+.menu-overlay.visible { opacity: 1; visibility: visible; }
+
+/* Dark mode button inside side menu */
+.side-menu .theme-toggle-btn { position: static; display: inline-block; border: none; border-radius: 16px; padding: 8px 14px; font-size: 1em; cursor: pointer; box-shadow: var(--btn-shadow); }
+.side-menu .theme-toggle-btn.active { box-shadow: var(--active-btn-shadow); }
+
+/* Dark-mode visuals for the menu button and side-menu */
+/* Dark mode menu visuals are handled via CSS variables set by applyTheme */
+.menu-btn { background: var(--menu-btn-bg); }
+.menu-btn span { background: var(--menu-btn-span); }
+.side-menu { background: var(--menu-bg); box-shadow: var(--menu-shadow); }
+.side-menu-inner { color: var(--menu-text); }
+.side-menu h3 { color: var(--accent); }
+.close-menu-btn { color: var(--menu-text); }
+.menu-overlay { background: var(--menu-overlay); }
+
+/* Rearrange mode visuals */
+.rearrange-active .card { cursor: pointer; }
+.card.picked { outline: 3px dashed rgba(168,92,122,0.6); transform: translateY(-6px); box-shadow: var(--card-shadow-strong); }
+.rearrange-btn { display: inline-block; margin-top: 8px; background: var(--card-bg); border: none; padding: 8px 12px; border-radius: 12px; color: var(--card-text); cursor: pointer; }
+.rearrange-btn.active { background: rgba(0,0,0,0.04); }
+.rearrange-instructions { opacity: 0.95; }
+/* Reset layout button */
+.reset-btn { display: inline-block; margin-top: 8px; background: var(--card-bg); border: none; padding: 8px 12px; border-radius: 12px; color: var(--card-text); cursor: pointer; }
+.reset-btn:hover { background: rgba(0,0,0,0.04); }
+
+/* Drag visuals */
+.card.dragging { opacity: 0.85; transform: scale(1.02); box-shadow: var(--card-drag-shadow); }
+.placeholder { border: 2px dashed rgba(168,92,122,0.3); border-radius: 18px; background: rgba(255,255,255,0.6); }
+/* Secondary clock */
+.secondary-clock { font-size: inherit; margin-top: 8px; color: var(--card-text); text-align: center; line-height: 1; }
+/* card wrapper for the secondary clock */
+/*.secondary-clock-card {
+  background: #fff1f6;
+  padding: 14px 18px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(168,92,122,0.10);
+  color: #7a3a57;
+  font-size: inherit;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+/*.secondary-clock-card[style*="display:none"] { display: none; }*/
+
+/* Ensure secondary clock inside the main clock card matches the main clock's typography */
+.left-column .clock-card .secondary-clock {
+  font-size: inherit; /* match .card (main clock) */
+  line-height: 1;
+  margin-top: 8px;
+}
+
+/* Drag position badge shown near pointer while dragging */
+.drag-badge {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(255, 228, 238, 0.95);
+  color: #7a3a57;
+  padding: 6px 8px;
+  border-radius: 12px;
+  box-shadow: var(--drag-badge-shadow);
+  font-size: 0.9em;
+  z-index: 3000;
+  transform: translate(-50%, -140%);
+}
+
+/* Tasks card visuals */
+.tasks-card { padding: 12px 14px; font-size: 0.95em; text-align: left; position: relative; display: flex; flex-direction: column; }
+.tasks-card .tasks-inner { color: #6d3b5a; overflow: auto; -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */; flex: 1 1 auto; max-height: 30vh;   padding-bottom: 30px; }
+.tasks-card ul { list-style:none; padding:0; margin:0; }
+.tasks-card li { padding:8px 6px; border-bottom:1px solid rgba(160,110,140,0.06); }
+.tasks-card li:last-child { border-bottom: none; }
+.tasks-card .task-title { color: #7a3a57; font-weight:500; }
+.tasks-card .task-due { color: #9b5f7c; font-size:0.85em; }
+.tasks-card button { background: transparent; border: none; color: #a85c7a; cursor: pointer; }
+
+/* Ensure task text uses semantic classes so dark mode can override cleanly */
+.task-title { color: #7a3a57; }
+.task-due { color: #9b5f7c; font-size:0.85em; }
+
+/* If the browser supports CSS Grid, prefer the grid layout (modern browsers) */
+@supports (display: grid) {
+  .main-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 28px;
+    padding: 24px;
+  }
+
+  /* When grid is available, left-column should behave as a regular grid item */
+  .left-column { 
+    grid-column: 1; 
+    grid-row: 1 / span 2; 
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 18px; /* Equal spacing between cards */
+    margin-right: 0;
+    max-width: 300px;
+  }
+  .calendar-card { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* Cards and tasks style themselves from CSS variables so themes can control visuals */
+.secondary-clock-card { background: var(--card-bg); color: var(--card-text); box-shadow: var(--card-shadow-strong); }
+.secondary-clock-card .secondary-clock { color: var(--card-text); }
+.tasks-card { background: var(--card-bg); color: var(--card-text); box-shadow: var(--card-shadow-strong); }
+.tasks-card .tasks-inner { color: var(--card-text); }
+.tasks-card li { border-bottom-color: rgba(0,0,0,0.06); }
+.task-title, .tasks-card .task-title { color: var(--card-text); }
+.task-due, .tasks-card .task-due { color: var(--card-text); }
+
+/* Slightly conservative sizing for old iOS devices to avoid cramped layouts */
+.ios-old .card { padding: 14px; font-size: 1.6em; }
+.ios-old .calendar th, .ios-old .calendar td { padding: 8px 6px; font-size: 0.95em; }
+.ios-old .container { padding: 10px; }
+.ios-old .calendar-card { margin-left: 8px; }
+
+/* Ambient mode: frosted-glass cards and background image handling */
+body.ambient-mode {
+  background-color: var(--bg);
+  background-image: var(--ambient-bg-image, none);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+}
+
+body.ambient-mode .card {
+  background: rgba(255,255,255,0.06); /* subtle translucent surface */
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: none;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  color: var(--card-text);
+}
+
+/* Ensure menu and overlays remain readable over images */
+body.ambient-mode .side-menu { background: rgba(0,0,0,0.36); }
+body.ambient-mode .side-menu-inner { color: var(--menu-text); }
+
+/* Darker frosted glass style for bright ambient backgrounds */
+body.ambient-mode.ambient-darken .card {
+  background: rgba(122, 122, 122, 0.1);  /* Much darker frosted glass */
+  color: #fff;
+  border: 1px solid rgba(80,80,80,0.18);
+  backdrop-filter: blur(5px) saturate(70%);
+  -webkit-backdrop-filter: blur(5px) saturate(70%);
+}
+
+body.ambient-mode.ambient-darken .card .task-title,
+body.ambient-mode.ambient-darken .card .task-due,
+body.ambient-mode.ambient-darken .secondary-clock {
+  color: #fff;
+}

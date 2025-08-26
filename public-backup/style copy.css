@@ -1,0 +1,615 @@
+/* General Reset + Font */
+html { height: 100%; }
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Quicksand', sans-serif;
+  background: #d6a9cc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s ease;
+}
+
+/* page container to give consistent outer padding on smaller viewports */
+.container {
+  width: 100%;
+  padding: 20px; /* outer breathing room on iPad */
+  box-sizing: border-box;
+}
+
+/* Layout: default to flex-based layout (more compatible with older iOS) */
+.main-layout {
+  display: -webkit-box; /* legacy iOS flex fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1100px;
+  min-height: 60vh; /* avoid vertical squeeze on iPad */
+  padding: 12px;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+/* Left column wrapper (added by JS for older devices). Stacks the two small cards vertically. */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px; /* Reduce from 28px to 16px */
+}
+
+.left-column .card {
+  flex: 0 0 auto; /* default: natural size for clock/greeting/etc */
+  margin-bottom: 0; /* gap handles spacing */
+}
+
+.left-column .tasks-card {
+  flex: 1 1 0;        /* fill remaining space */
+  min-height: 0;      /* fix flexbox overflow issues */
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-card .tasks-inner {
+  flex: 1 1 0;        /* fill card vertically */
+  min-height: 0;
+  overflow-y: auto;   /* scroll inside card only */
+  max-height: unset;  /* remove 60vh max-height so it matches parent */
+}
+
+.left-column .card:first-child { margin-top: 6px; }
+.left-column .clock-card { -ms-flex: 0 0 auto; flex: 0 0 auto; }
+.left-column .extra-card { flex: 0 0 auto; display: flex; align-items: stretch; }
+/* Ensure both columns behave as flex columns and allow children to shrink/grow correctly */
+.left-column, .calendar-card {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-height: 0; /* allow flex children to control height */
+}
+
+/* Make the calendar content expand to fill the calendar-card so both columns match height */
+.calendar-card > .calendar {
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+}
+
+/* calendar should take remaining space */
+.calendar-card { -ms-flex: 1 1 auto; flex: 1 1 auto; }
+
+/* Card Style */
+.card {
+  background: #ffe4ee;
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(168, 92, 122, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* more internal padding so content isn't squished */
+  transition: background 0.3s, box-shadow 0.3s;
+  color: #a85c7a;
+  font-size: 2em;
+  box-sizing: border-box;
+}
+
+/* Specific Cards */
+/* Specific Cards (layout is controlled by flex or grid via @supports) */
+.calendar-card { font-size: 1.6em; text-align: center; padding: 12px 12px; box-sizing: border-box; }
+
+/* Calendar Styling */
+.calendar {
+  width: 100%;
+}
+
+.calendar h2 {
+  margin: 0 0 16px;
+  font-size: 1.8em;
+  font-weight: 600;
+}
+
+.calendar table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.calendar th, .calendar td {
+  padding: 12px 8px;      /* spacing between days */
+  text-align: center;
+  color: #a85c7a;
+  font-size: 1em;
+}
+
+.calendar th {
+  font-weight: 600;
+  color: #c27a9b;
+  padding-bottom: 14px;
+}
+
+/* Today highlight */
+.calendar td.today {
+  background: #f8d6e5;
+  border-radius: 50%;
+  font-weight: bold;
+  color: #a85c7a;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 6px rgba(168, 92, 122, 0.18);
+}
+
+/* Dark Mode */
+body.dark-mode {
+  background: #2d2233;
+  color: #ffe4ee;
+}
+.dark-mode .card {
+  background: #3a2a44;
+  /* darker shadow in dark mode for depth */
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  color: #ffe4ee;
+}
+.dark-mode .calendar th, 
+.dark-mode .calendar td {
+  color: #ffe4ee;
+}
+.dark-mode .calendar td.today {
+  background: #2d2233;
+  color: #fbeff5;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+}
+
+/* Dark Mode Button */
+.menu-btn {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.9);
+  border: none;
+  box-shadow: 0 2px 8px rgba(168,92,122,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  cursor: pointer;
+}
+.menu-btn span { display: block; width: 22px; height: 2px; background: #a85c7a; margin: 3px 0; border-radius: 2px; }
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -320px; /* hidden by default */
+  width: 300px;
+  height: 100vh;
+  background: #fff7fb;
+  box-shadow: 2px 0 24px rgba(0,0,0,0.12);
+  transition: left 0.28s ease;
+  z-index: 1200;
+  /* allow internal scrolling when content is taller than the viewport */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Green Mode */
+body.green-mode {
+  background: #e0f7e9;
+  color: #2e6d4c;
+}
+.green-mode .card {
+  background: #c8f2d6;
+  box-shadow: 0 12px 40px rgba(46, 109, 76, 0.18);
+  color: #2e6d4c;
+}
+.green-mode .calendar th,
+.green-mode .calendar td {
+  color: #2e6d4c;
+}
+.green-mode .calendar td.today {
+  background: #b2e9c7;
+  color: #1e4d34;
+  box-shadow: 0 2px 6px rgba(46, 109, 76, 0.18);
+}
+.green-mode .menu-btn {
+  background: rgba(200,242,214,0.9);
+}
+.green-mode .menu-btn span {
+  background: #2e6d4c;
+}
+.green-mode .side-menu {
+  background: #e0f7e9;
+  box-shadow: 2px 0 24px rgba(46,109,76,0.12);
+}
+.green-mode .side-menu-inner { color: #2e6d4c; }
+.green-mode .side-menu h3 { color: #1e4d34; }
+.green-mode .close-menu-btn { color: #2e6d4c; }
+.green-mode .menu-overlay { background: rgba(46,109,76,0.18); }
+.green-mode .side-menu .dark-mode-btn,
+.green-mode .side-menu .green-mode-btn,
+.green-mode .side-menu .navy-mode-btn {
+  background: #c8f2d6;
+  color: #2e6d4c;
+}
+.green-mode .side-menu .green-mode-btn.active { background: #2e6d4c; color: #c8f2d6; }
+.reset-theme-btn { margin-top:8px; padding:10px 14px; border-radius:12px; background:#ffdfe9; color:#7a3a57; border:none; cursor:pointer; }
+
+/* Buttons that should match the active theme (e.g., refresh button) */
+.themed-btn { padding:8px 10px; border-radius:10px; border:none; cursor:pointer; }
+.themed-btn.theme-default { background:#ffe4ee; color:#a85c7a; }
+.dark-mode .themed-btn, body.dark-mode .themed-btn { background:#3a2a44; color:#ffe4ee; box-shadow:0 6px 18px rgba(0,0,0,0.45); }
+.green-mode .themed-btn, body.green-mode .themed-btn { background:#c8f2d6; color:#2e6d4c; }
+.navy-mode .themed-btn, body.navy-mode .themed-btn { background:#1e4fa0; color:#fff; }
+.dark-green-mode .themed-btn, body.dark-green-mode .themed-btn { background:#163826; color:#dff6e6; }
+.tasks-refresh-btn { padding:6px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; }
+.tasks-refresh-btn svg { width:18px; height:18px; fill:currentColor; display:block; }
+.tasks-refresh-btn:hover { transform:translateY(-1px); }
+.tasks-card { position:relative; }
+.green-mode .tasks-card { background: #c8f2d6; color: #2e6d4c; box-shadow: 0 12px 40px rgba(46,109,76,0.18); }
+.green-mode .tasks-card .tasks-inner { color: #2e6d4c; }
+.green-mode .tasks-card li { border-bottom-color: rgba(46,109,76,0.08); }
+.green-mode .task-title, .green-mode .tasks-card .task-title { color: #1e4d34; }
+.green-mode .task-due, .green-mode .tasks-card .task-due { color: #2e6d4c; }
+.green-mode .secondary-clock-card { background: #c8f2d6; color: #2e6d4c; box-shadow: 0 12px 40px rgba(46,109,76,0.18); }
+.green-mode .secondary-clock-card .secondary-clock { color: #2e6d4c; }
+/* Navy Blue Mode */
+body.navy-mode {
+  background: #1a2233;
+  color: #cce3ff;
+}
+.navy-mode .card {
+  background: #223a5a;
+  box-shadow: 0 12px 40px rgba(26,34,51,0.45);
+  color: #cce3ff;
+}
+.navy-mode .calendar th,
+.navy-mode .calendar td {
+  color: #cce3ff;
+}
+.navy-mode .calendar td.today {
+  background: #1a2233;
+  color: #cce3ff;
+  box-shadow: 0 2px 6px rgba(26,34,51,0.45);
+}
+.navy-mode .menu-btn {
+  background: rgba(34,58,90,0.9);
+}
+.navy-mode .menu-btn span {
+  background: #cce3ff;
+}
+.navy-mode .side-menu {
+  background: #223a5a;
+  box-shadow: 2px 0 24px rgba(26,34,51,0.6);
+}
+.navy-mode .side-menu-inner { color: #cce3ff; }
+.navy-mode .side-menu h3 { color: #cce3ff; }
+.navy-mode .close-menu-btn { color: #cce3ff; }
+.navy-mode .menu-overlay { background: rgba(26,34,51,0.55); }
+.navy-mode .side-menu .dark-mode-btn,
+.navy-mode .side-menu .green-mode-btn,
+.navy-mode .side-menu .navy-mode-btn {
+  background: #223a5a;
+  color: #cce3ff;
+}
+.navy-mode .side-menu .navy-mode-btn { background: #1e4fa0; color: #ffffff; }
+.navy-mode .side-menu .navy-mode-btn.active { background: #cce3ff; color: #223a5a; }
+.navy-mode .tasks-card { background: #223a5a; color: #cce3ff; box-shadow: 0 12px 40px rgba(26,34,51,0.45); }
+.navy-mode .tasks-card .tasks-inner { color: #cce3ff; }
+.navy-mode .tasks-card li { border-bottom-color: rgba(255,255,255,0.04); }
+.navy-mode .task-title, .navy-mode .tasks-card .task-title { color: #cce3ff; }
+.navy-mode .task-due, .navy-mode .tasks-card .task-due { color: #cce3ff; }
+.navy-mode .secondary-clock-card { background: #223a5a; color: #cce3ff; box-shadow: 0 12px 40px rgba(26,34,51,0.45); }
+.navy-mode .secondary-clock-card .secondary-clock { color: #cce3ff; }
+.side-menu.open { left: 0; }
+.side-menu-inner { padding: 24px; color: #6d3b5a; }
+
+/* Make the inner container scrollable and include padding in height calculations so
+   the close button and other fixed elements remain reachable on small screens. */
+.side-menu-inner {
+  box-sizing: border-box;
+  max-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.side-menu h3 { margin: 0 0 12px; font-size: 1.2em; color: #a85c7a; }
+.close-menu-btn {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  color: #a85c7a;
+  cursor: pointer;
+}
+
+/* Settings panel controls (global) */
+.side-menu input[type="text"],
+.side-menu select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e0b8d0;
+  background: #fff7fb;
+  color: #6d3b5a;
+  box-sizing: border-box;
+}
+.side-menu button {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: none;
+  background: #ffe4ee;
+  color: #a85c7a;
+  cursor: pointer;
+}
+.theme-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.theme-btns button { min-width: 120px; padding: 10px 14px; font-size: 1em; }
+.side-menu button.active { box-shadow: 0 6px 18px rgba(168,92,122,0.08); }
+.side-menu label { color: #6d3b5a; }
+
+/* Dark theme overrides for settings controls */
+body.dark-mode .side-menu input[type="text"],
+body.dark-mode .side-menu select {
+  background: #3a2a44;
+  color: #ffe4ee;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+body.dark-mode .side-menu button {
+  background: #3a2a44;
+  color: #ffe4ee;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+body.dark-mode .side-menu label { color: #ffdfea; }
+
+/* Green theme overrides for settings controls */
+body.green-mode .side-menu input[type="text"],
+body.green-mode .side-menu select {
+  background: #c8f2d6;
+  color: #2e6d4c;
+  border: 1px solid rgba(46,109,76,0.12);
+}
+body.green-mode .side-menu button {
+  background: #c8f2d6;
+  color: #2e6d4c;
+}
+body.green-mode .side-menu label { color: #2e6d4c; }
+
+/* Navy theme overrides for settings controls */
+body.navy-mode .side-menu input[type="text"],
+body.navy-mode .side-menu select {
+  background: #223a5a;
+  color: #cce3ff;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+body.navy-mode .side-menu button {
+  background: #223a5a;
+  color: #cce3ff;
+}
+body.navy-mode .side-menu label { color: #cce3ff; }
+
+/* Dark Green theme overrides for settings controls */
+body.dark-green-mode .side-menu input[type="text"],
+body.dark-green-mode .side-menu select {
+  background: #163826;
+  color: #dff6e6;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+body.dark-green-mode .side-menu button {
+  background: #163826;
+  color: #dff6e6;
+}
+body.dark-green-mode .side-menu label { color: #dff6e6; }
+
+/* Ensure side-menu text (paragraphs/help text) inherits readable color in dark themes */
+body.dark-mode .side-menu-inner,
+body.navy-mode .side-menu-inner,
+body.dark-green-mode .side-menu-inner,
+body.green-mode .side-menu-inner { color: inherit; }
+
+/* Make input placeholders visible in dark themes */
+body.dark-mode .side-menu input::placeholder,
+body.navy-mode .side-menu input::placeholder,
+body.dark-green-mode .side-menu input::placeholder,
+body.green-mode .side-menu input::placeholder { color: rgba(255,255,255,0.6); }
+
+/* Dark Green Mode */
+body.dark-green-mode {
+  background: #122819;
+  color: #dff6e6;
+}
+.dark-green-mode .card {
+  background: #163826;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  color: #dff6e6;
+}
+.dark-green-mode .calendar th,
+.dark-green-mode .calendar td {
+  color: #dff6e6;
+}
+.dark-green-mode .calendar td.today {
+  background: #163826;
+  color: #e6f9ee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.dark-green-mode .menu-btn { background: rgba(20,50,40,0.9); }
+.dark-green-mode .menu-btn span { background: #dff6e6; }
+.dark-green-mode .side-menu { background: #122819; box-shadow: 2px 0 24px rgba(0,0,0,0.6); }
+.dark-green-mode .side-menu-inner { color: #dff6e6; }
+.dark-green-mode .side-menu h3 { color: #e6f9ee; }
+.dark-green-mode .close-menu-btn { color: #dff6e6; }
+.dark-green-mode .menu-overlay { background: rgba(0,0,0,0.6); }
+.dark-green-mode .side-menu .dark-mode-btn,
+.dark-green-mode .side-menu .green-mode-btn,
+.dark-green-mode .side-menu .navy-mode-btn,
+.dark-green-mode .side-menu .dark-green-mode-btn {
+  background: #163826;
+  color: #dff6e6;
+}
+.dark-green-mode .side-menu .dark-green-mode-btn.active { background: #dff6e6; color: #163826; }
+.dark-green-mode .side-menu .dark-green-mode-btn.active { background: #dff6e6; color: #163826; }
+.dark-green-mode .tasks-card { background: #163826; color: #dff6e6; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+.dark-green-mode .tasks-card .tasks-inner { color: #dff6e6; }
+.dark-green-mode .tasks-card li { border-bottom-color: rgba(255,255,255,0.03); }
+.dark-green-mode .task-title, .dark-green-mode .tasks-card .task-title { color: #e6f9ee; }
+.dark-green-mode .task-due, .dark-green-mode .tasks-card .task-due { color: #c6e8d3; }
+.dark-green-mode .secondary-clock-card { background: #163826; color: #dff6e6; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+.dark-green-mode .secondary-clock-card .secondary-clock { color: #dff6e6; }
+
+.menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.28); opacity: 0; visibility: hidden; transition: opacity 0.2s; z-index: 1100; }
+.menu-overlay.visible { opacity: 1; visibility: visible; }
+
+/* Dark mode button inside side menu */
+.side-menu .dark-mode-btn {
+  position: static;
+  display: inline-block;
+  background: #ffe4ee;
+  color: #a85c7a;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 14px;
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(168, 92, 122, 0.08);
+}
+.side-menu .dark-mode-btn.active { background: #2d2233; color: #ffe4ee; }
+
+/* Dark-mode visuals for the menu button and side-menu */
+body.dark-mode .menu-btn {
+  background: rgba(48,36,48,0.9);
+}
+body.dark-mode .menu-btn span {
+  background: #fbeff5;
+}
+body.dark-mode .side-menu {
+  background: #2b202b;
+  box-shadow: 2px 0 24px rgba(0,0,0,0.6);
+}
+body.dark-mode .side-menu-inner { color: #ffe4ee; }
+body.dark-mode .side-menu h3 { color: #ffdfea; }
+body.dark-mode .close-menu-btn { color: #ffe4ee; }
+
+/* In dark mode, make overlay a bit lighter to contrast */
+body.dark-mode .menu-overlay { background: rgba(0,0,0,0.55); }
+
+/* Rearrange mode visuals */
+.rearrange-active .card { cursor: pointer; }
+.card.picked { outline: 3px dashed rgba(168,92,122,0.6); transform: translateY(-6px); box-shadow: 0 12px 36px rgba(0,0,0,0.12); }
+.rearrange-btn { display: inline-block; margin-top: 8px; background: #f5d9e6; border: none; padding: 8px 12px; border-radius: 12px; color: #a85c7a; cursor: pointer; }
+.rearrange-btn.active { background: #d4b1c8; }
+.rearrange-instructions { opacity: 0.95; }
+/* Reset layout button */
+.reset-btn { display: inline-block; margin-top: 8px; background: #ffdfe9; border: none; padding: 8px 12px; border-radius: 12px; color: #7a3a57; cursor: pointer; }
+.reset-btn:hover { background: #ffcedf; }
+
+/* Drag visuals */
+.card.dragging { opacity: 0.85; transform: scale(1.02); box-shadow: 0 18px 48px rgba(0,0,0,0.18); }
+.placeholder { border: 2px dashed rgba(168,92,122,0.3); border-radius: 18px; background: rgba(255,255,255,0.6); }
+/* Secondary clock */
+.secondary-clock { font-size: 2em; margin-top: 8px; color: #a85c7a; text-align: center; }
+/* card wrapper for the secondary clock */
+.secondary-clock-card {
+  background: #fff1f6;
+  padding: 14px 18px;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(168,92,122,0.10);
+  color: #7a3a57;
+  font-size: 1.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.secondary-clock-card[style*="display:none"] { display: none; }
+
+/* Drag position badge shown near pointer while dragging */
+.drag-badge {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(255, 228, 238, 0.95);
+  color: #7a3a57;
+  padding: 6px 8px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(168,92,122,0.12);
+  font-size: 0.9em;
+  z-index: 3000;
+  transform: translate(-50%, -140%);
+}
+
+/* Tasks card visuals */
+.tasks-card { padding: 12px 14px; font-size: 0.95em; text-align: left; position: relative; }
+.tasks-card { padding: 12px 14px; font-size: 0.95em; text-align: left; position: relative; display: flex; flex-direction: column; }
+.tasks-card .tasks-inner { color: #6d3b5a; overflow: auto; -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */; flex: 1 1 auto; max-height: 60vh; }
+.tasks-card ul { list-style:none; padding:0; margin:0; }
+.tasks-card li { padding:8px 6px; border-bottom:1px solid rgba(160,110,140,0.06); }
+.tasks-card li:last-child { border-bottom: none; }
+.tasks-card .task-title { color: #7a3a57; font-weight:500; }
+.tasks-card .task-due { color: #9b5f7c; font-size:0.85em; }
+.tasks-card button { background: transparent; border: none; color: #a85c7a; cursor: pointer; }
+
+/* Ensure task text uses semantic classes so dark mode can override cleanly */
+.task-title { color: #7a3a57; }
+.task-due { color: #9b5f7c; font-size:0.85em; }
+
+/* If the browser supports CSS Grid, prefer the grid layout (modern browsers) */
+@supports (display: grid) {
+  .main-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 320px) 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 28px;
+    padding: 24px;
+  }
+
+  /* When grid is available, left-column should behave as a regular grid item */
+  .left-column { 
+  grid-column: 1; 
+  grid-row: 1 / span 2; 
+  display: flex;               /* <-- CHANGE THIS */
+  flex-direction: column;      /* <-- ADD THIS */
+  height: 100%;                /* <-- ADD THIS */
+  margin-right: 0; 
+  }
+  .calendar-card { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* Dark-mode overrides for secondary clock card to match other cards */
+body.dark-mode .secondary-clock-card {
+  background: #3a2a44; /* same as .dark-mode .card */
+  color: #ffe4ee;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+body.dark-mode .secondary-clock-card .secondary-clock {
+  color: #ffe4ee;
+}
+
+/* Dark mode for tasks card */
+body.dark-mode .tasks-card { background: #3a2a44; color: #ffdfe9; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+body.dark-mode .tasks-card .tasks-inner { color: #ffdfe9; }
+body.dark-mode .tasks-card li { border-bottom-color: rgba(255,255,255,0.04); }
+/* Dark mode specific task text colors */
+body.dark-mode .task-title, body.dark-mode .tasks-card .task-title { color: #ffdfe9; }
+body.dark-mode .task-due, body.dark-mode .tasks-card .task-due { color: #f3c3d6; }
+
+/* Slightly conservative sizing for old iOS devices to avoid cramped layouts */
+.ios-old .card { padding: 14px; font-size: 1.6em; }
+.ios-old .calendar th, .ios-old .calendar td { padding: 8px 6px; font-size: 0.95em; }
+.ios-old .container { padding: 10px; }
+/* Force extra breathing room for calendar when old-iOS wrapper is active */
+.ios-old .calendar-card { margin-left: 8px; }

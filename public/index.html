@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Quicksand:400,700&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#fbeff5">
+  <!-- iOS PWA meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Cosy Calendar">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Dashboard</title>
+</head>
+<body>
+  <button id="menuBtn" class="menu-btn" aria-label="Open settings">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div id="sideMenu" class="side-menu" aria-hidden="true">
+    <div id="sideMenuText" class="side-menu-inner">
+  <button id="closeMenuBtn" class="close-menu-btn" aria-label="Close settings">×</button>
+      <h3>Settings</h3>
+    <div class="theme-btns">
+      <button id="darkModeBtn" class="dark-mode-btn">Dark Mode</button>
+      <button id="greenModeBtn" class="green-mode-btn">Green Mode</button>
+      <button id="navyModeBtn" class="navy-mode-btn">Blue Mode</button>
+  <button id="darkGreenModeBtn" class="dark-green-mode-btn">Dark Green Mode</button>
+  <button id="nightModeBtn" class="night-mode-btn">Night Mode</button>
+  <button id="yellowModeBtn" class="yellow-mode-btn">Yellow Mode</button>
+  <button id="lightBlueModeBtn" class="light-blue-mode-btn">Light Blue Mode</button>
+  <button id="redModeBtn" class="red-mode-btn">Red Mode</button>
+  <button id="purpleModeBtn" class="purple-mode-btn">Purple Mode</button>
+    <button id="ambientModeBtn" class="ambient-mode-btn">Ambient Mode</button>
+    </div>
+  <div style="height:8px"></div>
+  <button id="resetThemeBtn" class="reset-theme-btn">Reset Theme</button>
+      <div style="height:12px"></div>
+      <button id="rearrangeBtn" class="rearrange-btn">Enter Rearrange Mode</button>
+  <div style="height:8px"></div>
+  <button id="resetLayoutBtn" class="reset-btn">Reset Layout</button>
+      <div style="height:12px"></div>
+      <label style="display:block; margin-top:8px;">24-hour time
+        <input id="hour24Chk" type="checkbox" style="margin-left:8px; vertical-align:middle;" />
+      </label>
+      <div style="height:8px"></div>
+      <label style="display:block; margin-top:8px;">Show second clock
+        <input id="showSecondChk" type="checkbox" style="margin-left:8px; vertical-align:middle;" />
+      </label>
+      <div style="height:8px"></div>
+      <label style="display:block; margin-top:6px;">Second clock timezone
+        <select id="tzSelect" style="display:block; margin-top:8px; padding:6px; border-radius:8px;">
+          <option value="local">Local device</option>
+          <option value="UTC">UTC</option>
+          <option value="America/New_York">New York (UTC-4)</option>
+          <option value="Europe/London">London (UTC+1)</option>
+          <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+          <option value="Australia/Sydney">Sydney (UTC+10)</option>
+          <option value="Asia/Kolkata">India (UTC+5:30)</option>
+        </select>
+      </label>
+      <div id="rearrangeInstructions" class="rearrange-instructions" style="display:none; margin-top:12px; color:#6d3b5a; font-size:0.95em;">
+        Long-press a card, then drag to reorder. Release to drop. Use Reset to restore defaults.
+      </div>
+      <div class="settings-list">
+        <!-- additional settings can be added here -->
+        <div style="height:12px"></div>
+        <div style="height:12px"></div>
+        <label style="display:block; margin-top:8px; font-size:0.95em;">Greeting name
+          <input id="greetingName" type="text" placeholder="Your name" style="display:block; margin-top:8px; padding:6px; border-radius:8px; width:100%; box-sizing:border-box;" />
+        </label>
+
+        <div style="height:12px"></div>
+        <label style="display:block; margin-top:8px; font-size:0.95em;">Google Tasks endpoint (Apps Script)
+          <input id="tasksEndpoint" type="text" placeholder="https://script.google.com/macros/s/..../exec" style="display:block; margin-top:8px; padding:6px; border-radius:8px; width:100%; box-sizing:border-box;" />
+        </label>
+        <div style="height:8px"></div>
+        <div style="display:flex; gap:8px;">
+          <button id="saveTasksEndpointBtn" class="rearrange-btn" style="flex:1;">Save</button>
+          <button id="clearTasksEndpointBtn" class="reset-btn" style="flex:1;">Clear</button>
+        </div>
+  <div style="height:8px"></div>
+  <div id="tasksEndpointHelp" style="font-size:0.85em;">Deploy an Apps Script Web App that returns your tasks as JSON (runs as you). Paste its URL here.</div>
+        <div style="height:10px"></div>
+        <label style="display:block; margin-top:8px; font-size:0.95em;">Choose Tasklist (by name)
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <select id="tasksListSelect" style="flex:1; padding:6px; border-radius:8px; box-sizing:border-box;">
+              <option value="">Default (device)</option>
+            </select>
+            <button id="loadListsBtn" class="rearrange-btn" style="flex:0 0 auto;">Load lists</button>
+          </div>
+        </label>
+        <div style="height:6px"></div>
+        <div id="tasksListStatus" style="font-size:0.82em; color:#7a3a57;">Click "Load lists" after saving your endpoint to populate available lists.</div>
+  <div style="height:10px"></div>
+
+        <label style="display:block; margin-top:8px; font-size:0.95em;">Weather location
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input id="weatherLocation" type="text" placeholder="City, e.g. London" style="flex:1; padding:6px; border-radius:8px; box-sizing:border-box;" />
+            <button id="saveWeatherLocationBtn" class="rearrange-btn" style="flex:0 0 auto;">Save</button>
+            <button id="clearWeatherLocationBtn" class="reset-btn" style="flex:0 0 auto;">Clear</button>
+          </div>
+        </label>
+        <div id="weatherStatus" style="font-size:0.82em; color:#7a3a57; margin-top:6px;">Set a location and click Save to show current weather.</div>
+
+  <div style="height:10px"></div>
+  <button id="fullscreenBtn" class="rearrange-btn" style="width:100%">Enter Fullscreen</button>
+      </div>
+    </div>
+  </div>
+  <div id="menuOverlay" class="menu-overlay" tabindex="-1"></div>
+
+  <div class="container">
+    <div class="main-layout">
+      <div class="left-column">
+        <div class="card clock-card" data-id="clock-card">
+          <div class="clock" id="clock">5:47</div>
+        </div>
+        <div class="card secondary-clock-card" data-id="secondary-clock-card" id="secondaryClockCard">
+          <div class="secondary-clock" id="secondaryClock">Secondary</div>
+        </div>
+        <div class="card extra-card" data-id="extra-card">
+          <div class="content" id="placeholderGreeting">Placeholder</div>
+        </div>
+  <div class="card tasks-card" data-id="tasks-card" id="tasksCard" style="margin-top:14px;">
+          <div class="tasks-inner" id="tasksInner">Not connected to Google Tasks</div>
+        </div>
+      </div>
+      <div class="right-column">
+        <div class="card calendar-card" data-id="calendar-card">
+          <div class="calendar" id="calendar">Calendar</div>
+        </div>
+        <div class="card weather-card" data-id="weather-card" id="weatherCard" style="margin-top:14px;">
+          <div class="weather" id="weather">Weather</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+  <script>
+    // register service worker for browsers that support it
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js').then(function(reg) {
+          // registration successful
+          console.log('ServiceWorker registered: ', reg.scope);
+        }).catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

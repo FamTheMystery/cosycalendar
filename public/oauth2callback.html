@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OAuth2 Callback</title>
+</head>
+<body>
+<script>
+// This page receives the access_token in the URL fragment and posts it back to the opener.
+(function(){
+  try {
+    var hash = window.location.hash.substring(1);
+    var params = {};
+    hash.split('&').forEach(function(part){
+      var kv = part.split('=');
+      if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || '');
+    });
+    if (window.opener && params.access_token) {
+      window.opener.postMessage({ type: 'gtoken', token: params.access_token, expires_in: params.expires_in, token_type: params.token_type }, window.location.origin);
+    }
+  } catch(e) { /* ignore */ }
+  // close after a short delay so message has time to post
+  setTimeout(function(){ window.close(); }, 500);
+})();
+</script>
+</body>
+</html>
