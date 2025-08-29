@@ -7,9 +7,16 @@ const { URL } = require('url');
 const port = 5006;
 const publicDir = path.join(__dirname, 'public');
 
-http.createServer((req, res) => {
+// load TLS certificate + private key
+const options = {
+  key: fs.readFileSync(path.join(__dirname, 'certs', 'privkey.pem')),  // adjust path
+  cert: fs.readFileSync(path.join(__dirname, 'certs', 'fullchain.pem'))
+};
+
+// swap http.createServer with https.createServer
+https.createServer(options, (req, res) => {
   try {
-    var parsed = new URL(req.url, 'http://' + (req.headers.host || 'localhost'));
+    var parsed = new URL(req.url, 'https://' + (req.headers.host || 'localhost'));
   } catch (e) {
     var parsed = null;
   }
@@ -98,7 +105,7 @@ http.createServer((req, res) => {
     }
   });
 }).listen(port, '0.0.0.0', () => {
-  console.log(`Cosy Calendar running on http://0.0.0.0:${port}`);
+  console.log(`Cosy Calendar running on https://0.0.0.0:${port}`);
 });
 
   function proxyRequest(targetUrl, res) {

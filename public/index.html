@@ -143,8 +143,23 @@
         </div>
       </div>
       <div class="right-column">
-        <div class="card calendar-card" data-id="calendar-card">
+        <div class="card calendar-card" data-id="calendar-card" id="calendarCard">
           <div class="calendar" id="calendar">Calendar</div>
+          <div class="traffic-view" id="trafficView" style="display:none;">
+            <div class="traffic-header">
+              <h2>Traffic</h2>
+              <button id="backToCalendarBtn" class="back-btn">← Back to Calendar</button>
+            </div>
+            <div class="traffic-content">
+              <div class="traffic-location">
+                <input id="trafficLocation" type="text" placeholder="Enter location or route" />
+                <button id="getTrafficBtn" class="traffic-btn">Get Traffic</button>
+              </div>
+              <div class="traffic-results" id="trafficResults">
+                <div class="traffic-placeholder">Click "Get Traffic" to see current traffic conditions</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="card weather-card" data-id="weather-card" id="weatherCard" style="margin-top:14px;">
           <div class="weather" id="weather">Weather</div>
@@ -186,5 +201,8 @@
       });
     }
   </script>
+  
+  <!-- Google Maps API Configuration -->
+  <script src="config.js"></script>
 </body>
 </html>

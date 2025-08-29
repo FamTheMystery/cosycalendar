@@ -1841,3 +1841,532 @@ setTimeout(function() {
         console.error('STARTUP: Error calling fetchDetailedWeather:', e);
     }
 }, 2000);
+
+// Traffic card functionality with API integration and location memory
+(function() {
+    var calendarCard = document.getElementById('calendarCard');
+    var calendar = document.getElementById('calendar');
+    var trafficView = document.getElementById('trafficView');
+    var backToCalendarBtn = document.getElementById('backToCalendarBtn');
+    var trafficLocation = document.getElementById('trafficLocation');
+    var getTrafficBtn = document.getElementById('getTrafficBtn');
+    var trafficResults = document.getElementById('trafficResults');
+
+    var isTrafficView = false;
+    var userLocation = null; // Store user's current location
+
+    // Request location permissions on startup
+    function requestLocationPermission() {
+        if (navigator.geolocation) {
+            clientLog('info', 'Requesting location permissions for traffic functionality');
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    clientLog('info', 'Location permission granted and location obtained');
+                    
+                    // Optionally reverse geocode to get a readable location name
+                    reverseGeocode(userLocation.lat, userLocation.lng)
+                        .then(function(locationName) {
+                            clientLog('info', 'Current location: ' + locationName);
+                        })
+                        .catch(function(error) {
+                            clientLog('warning', 'Could not get location name', error);
+                        });
+                },
+                function(error) {
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            clientLog('warning', 'Location permission denied by user');
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            clientLog('warning', 'Location information unavailable');
+                            break;
+                        case error.TIMEOUT:
+                            clientLog('warning', 'Location request timed out');
+                            break;
+                        default:
+                            clientLog('warning', 'Unknown location error occurred');
+                            break;
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5 minutes
+                }
+            );
+        } else {
+            clientLog('warning', 'Geolocation is not supported by this browser');
+        }
+    }
+
+    // Get TomTom API key
+    function getTomTomApiKey() {
+        try {
+            // First check localStorage
+            var apiKey = localStorage.getItem('tomtomApiKey');
+            if (apiKey) {
+                return apiKey;
+            }
+            
+            // Then check window.TOMTOM_API_KEY from config.js
+            if (window.TOMTOM_API_KEY && window.TOMTOM_API_KEY !== 'YOUR_API_KEY_HERE') {
+                return window.TOMTOM_API_KEY;
+            }
+            
+            // Show user how to set API key
+            console.warn('TomTom API key not found. Please set it in config.js or localStorage');
+            return null;
+        } catch (e) {
+            console.error('Error retrieving TomTom API key:', e);
+            return null;
+        }
+    }
+
+    // Reverse geocode coordinates to get a readable location name using TomTom
+    function reverseGeocode(lat, lng) {
+        return new Promise(function(resolve, reject) {
+            var apiKey = getTomTomApiKey();
+            if (!apiKey) {
+                // Fallback to a simple coordinate display
+                resolve(lat.toFixed(4) + ', ' + lng.toFixed(4));
+                return;
+            }
+            
+            var url = 'https://api.tomtom.com/search/2/reverseGeocode/' + 
+                      encodeURIComponent(lat + ',' + lng) + '.json?key=' + apiKey;
+            
+            fetch(url)
+            .then(function(response) {
+                if (!response.ok) throw new Error('Reverse geocoding failed');
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.addresses && data.addresses.length > 0) {
+                    var address = data.addresses[0].address;
+                    var locationName = address.municipality || address.localName || 
+                                     address.countrySubdivision || address.freeformAddress;
+                    resolve(locationName || (lat.toFixed(4) + ', ' + lng.toFixed(4)));
+                } else {
+                    resolve(lat.toFixed(4) + ', ' + lng.toFixed(4));
+                }
+            })
+            .catch(function(error) {
+                // Fallback to coordinate display
+                resolve(lat.toFixed(4) + ', ' + lng.toFixed(4));
+            });
+        });
+    }
+
+    // Load saved location on startup
+    function loadSavedTrafficLocation() {
+        try {
+            var savedLocation = localStorage.getItem('cosyCalendar_trafficLocation');
+            if (savedLocation && trafficLocation) {
+                trafficLocation.value = savedLocation;
+                clientLog('info', 'Loaded saved traffic location: ' + savedLocation);
+                // Auto-fetch traffic for saved location
+                fetchTrafficData(savedLocation);
+            }
+        } catch (e) {
+            clientLog('error', 'Failed to load saved traffic location', e);
+        }
+    }
+
+    // Save location to localStorage
+    function saveTrafficLocation(location) {
+        try {
+            localStorage.setItem('cosyCalendar_trafficLocation', location);
+            clientLog('info', 'Saved traffic location: ' + location);
+        } catch (e) {
+            clientLog('error', 'Failed to save traffic location', e);
+        }
+    }
+
+    function switchToTrafficView() {
+        isTrafficView = true;
+        calendar.style.display = 'none';
+        trafficView.style.display = 'flex';
+        
+        // Load saved location when switching to traffic view
+        loadSavedTrafficLocation();
+        
+        clientLog('info', 'Switched to traffic view');
+    }
+
+    function switchToCalendarView() {
+        isTrafficView = false;
+        calendar.style.display = 'block';
+        trafficView.style.display = 'none';
+        clientLog('info', 'Switched back to calendar view');
+    }
+
+    function showTrafficPlaceholder() {
+        trafficResults.innerHTML = '<div class="traffic-placeholder">Enter a location and click "Get Traffic" to see current traffic conditions</div>';
+    }
+
+    function showTrafficLoading() {
+        trafficResults.innerHTML = '<div class="traffic-placeholder">Loading traffic information...</div>';
+    }
+
+    function showTrafficError(message) {
+        var html = '<div class="traffic-placeholder" style="color: var(--accent);">Error: ' + encodeHTML(message) + '</div>';
+        
+        // Add helpful setup instructions for API key errors
+        if (message.includes('API key') || message.includes('TomTom')) {
+            html += '<div style="margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em;">';
+            html += '<strong>TomTom API Setup:</strong><br>';
+            html += '1. Get a TomTom API key from <a href="https://developer.tomtom.com/" target="_blank" style="color: var(--accent);">TomTom Developer Portal</a><br>';
+            html += '2. Your API key is already configured for this session<br>';
+            html += '3. Make sure you have enabled the following APIs:<br>';
+            html += '&nbsp;&nbsp;• Search API<br>';
+            html += '&nbsp;&nbsp;• Routing API<br>';
+            html += '4. Check your API key quotas and usage limits<br>';
+            html += '<br>If the issue persists, try refreshing the page.';
+            html += '</div>';
+        }
+        
+        trafficResults.innerHTML = html;
+    }
+
+    // Enhanced traffic info display with real-time data
+    function showTrafficInfo(location, trafficData) {
+        var html = '<div class="traffic-info">';
+        
+        // Show from location if we have user's location
+        var fromLocation = userLocation ? 'your current location' : 'your location';
+        html += '<h3 style="margin-top:0; color: var(--accent); margin-bottom: 16px;">Traffic from ' + fromLocation + ' to: ' + encodeHTML(location) + '</h3>';
+        
+        if (trafficData.routes && trafficData.routes.length > 0) {
+            for (var i = 0; i < trafficData.routes.length; i++) {
+                var route = trafficData.routes[i];
+                html += '<div class="traffic-route">';
+                html += '<div class="traffic-route-header">';
+                html += '<div class="traffic-route-name">' + encodeHTML(route.name) + '</div>';
+                html += '<div class="traffic-duration">' + encodeHTML(route.duration) + '</div>';
+                html += '</div>';
+                html += '<div class="traffic-details">';
+                html += '<span class="traffic-status ' + route.status + '">' + route.status.toUpperCase() + '</span>';
+                html += encodeHTML(route.details);
+                html += '</div>';
+                if (route.distance) {
+                    html += '<div class="traffic-distance">Distance: ' + encodeHTML(route.distance) + '</div>';
+                }
+                html += '</div>';
+            }
+        }
+
+        // Add current traffic conditions
+        if (trafficData.conditions) {
+            html += '<div class="traffic-conditions">';
+            html += '<h4 style="color: var(--accent); margin: 16px 0 8px 0;">Current Conditions</h4>';
+            html += '<div class="condition-item">Overall Traffic: <span class="traffic-level-' + trafficData.conditions.level + '">' + trafficData.conditions.level.toUpperCase() + '</span></div>';
+            if (trafficData.conditions.incidents > 0) {
+                html += '<div class="condition-item">Active Incidents: ' + trafficData.conditions.incidents + '</div>';
+            }
+            html += '<div class="condition-item">Data Source: ' + (trafficData.conditions.source || 'Traffic API') + '</div>';
+            html += '<div class="condition-item">Last Updated: ' + new Date().toLocaleTimeString() + '</div>';
+            
+            // Show location accuracy status
+            if (userLocation) {
+                html += '<div class="condition-item">Location: <span style="color: #28a745; font-weight: 600;">GPS Enabled</span></div>';
+            } else {
+                html += '<div class="condition-item">Location: <span style="color: #ffc107; font-weight: 600;">Estimated</span></div>';
+            }
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        trafficResults.innerHTML = html;
+    }
+
+    // Geocode location using TomTom Search API
+    function geocodeLocation(location) {
+        return new Promise(function(resolve, reject) {
+            var apiKey = getTomTomApiKey();
+            if (!apiKey) {
+                reject(new Error('TomTom API key not configured'));
+                return;
+            }
+            
+            var encodedLocation = encodeURIComponent(location);
+            var url = 'https://api.tomtom.com/search/2/search/' + encodedLocation + '.json?key=' + apiKey + '&limit=1';
+            
+            fetch(url)
+            .then(function(response) {
+                if (!response.ok) throw new Error('Geocoding failed: ' + response.status);
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.results && data.results.length > 0) {
+                    var result = data.results[0];
+                    resolve({
+                        lat: result.position.lat,
+                        lng: result.position.lon,
+                        display_name: result.address.freeformAddress || location
+                    });
+                } else {
+                    reject(new Error('Location not found'));
+                }
+            })
+            .catch(reject);
+        });
+    }
+
+    // Get real traffic data using TomTom Routing API
+    function getTrafficRoutes(destLat, destLng, location) {
+        return new Promise(function(resolve, reject) {
+            var apiKey = getTomTomApiKey();
+            if (!apiKey) {
+                reject(new Error('TomTom API key not configured'));
+                return;
+            }
+
+            // Use stored user location if available, otherwise fall back to geolocation API
+            if (userLocation) {
+                fetchTomTomTraffic(userLocation.lat, userLocation.lng, destLat, destLng, location, apiKey, resolve, reject);
+            } else if (navigator.geolocation) {
+                clientLog('info', 'Getting current location for traffic calculation');
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLat = position.coords.latitude;
+                    var userLng = position.coords.longitude;
+                    
+                    // Store for future use
+                    userLocation = { lat: userLat, lng: userLng };
+                    
+                    fetchTomTomTraffic(userLat, userLng, destLat, destLng, location, apiKey, resolve, reject);
+                }, function(error) {
+                    clientLog('warning', 'Could not get current location for traffic');
+                    reject(new Error('Location access denied. Please enable location services.'));
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 300000 // 5 minutes
+                });
+            } else {
+                reject(new Error('Geolocation not supported'));
+            }
+        });
+    }
+
+    // Fetch real traffic data from TomTom Routing API
+    function fetchTomTomTraffic(userLat, userLng, destLat, destLng, location, apiKey, resolve, reject) {
+        var origin = userLat + ',' + userLng;
+        var destination = destLat + ',' + destLng;
+        
+        // TomTom routing with traffic
+        var baseUrl = 'https://api.tomtom.com/routing/1/calculateRoute/' + 
+                     encodeURIComponent(origin) + ':' + encodeURIComponent(destination) + '/json';
+        
+        // Request multiple route options
+        var requests = [
+            {
+                name: 'Fastest Route',
+                url: baseUrl + '?key=' + apiKey + '&traffic=true&routeType=fastest&travelMode=car'
+            },
+            {
+                name: 'Shortest Route', 
+                url: baseUrl + '?key=' + apiKey + '&traffic=true&routeType=shortest&travelMode=car'
+            },
+            {
+                name: 'Economy Route',
+                url: baseUrl + '?key=' + apiKey + '&traffic=true&routeType=eco&travelMode=car'
+            }
+        ];
+
+        Promise.all(requests.map(function(req) {
+            return fetch(req.url)
+                .then(function(response) {
+                    if (!response.ok) throw new Error('TomTom API request failed: ' + response.status);
+                    return response.json();
+                })
+                .then(function(data) {
+                    return { name: req.name, data: data };
+                })
+                .catch(function(error) {
+                    // Return null for failed requests instead of failing the entire Promise.all
+                    console.warn('Failed to fetch route for ' + req.name + ':', error);
+                    return { name: req.name, data: null, error: error };
+                });
+        }))
+        .then(function(results) {
+            var routes = [];
+            var totalIncidents = 0;
+
+            results.forEach(function(result) {
+                if (result.data && result.data.routes && result.data.routes.length > 0) {
+                    var route = result.data.routes[0];
+                    var summary = route.summary;
+                    
+                    // Convert meters to miles
+                    var distanceInMiles = (summary.lengthInMeters * 0.000621371).toFixed(1);
+                    
+                    // Get travel time with and without traffic
+                    var travelTimeSeconds = summary.travelTimeInSeconds;
+                    var trafficDelaySeconds = summary.trafficDelayInSeconds || 0;
+                    var liveTrafficSeconds = summary.liveTrafficIncidentsTravelTimeInSeconds || travelTimeSeconds;
+                    
+                    // Format durations
+                    var duration = formatDuration(Math.round(liveTrafficSeconds / 60));
+                    var normalDuration = formatDuration(Math.round((travelTimeSeconds - trafficDelaySeconds) / 60));
+                    
+                    // Determine traffic status based on delay
+                    var delayMinutes = trafficDelaySeconds / 60;
+                    var status = 'light';
+                    var details = 'Good traffic conditions';
+                    
+                    if (delayMinutes > 10) {
+                        status = 'heavy';
+                        details = 'Heavy traffic - ' + Math.round(delayMinutes) + ' min delay';
+                    } else if (delayMinutes > 3) {
+                        status = 'moderate';
+                        details = 'Moderate traffic - ' + Math.round(delayMinutes) + ' min delay';
+                    }
+                    
+                    // Add route instruction summary if available
+                    if (route.legs && route.legs[0] && route.legs[0].points && route.legs[0].points.length > 0) {
+                        var instructions = route.legs[0].points.filter(function(point) {
+                            return point.instruction && point.instruction.routeOffsetInMeters === 0;
+                        });
+                        if (instructions.length > 0) {
+                            details += ' via ' + instructions[0].instruction.street;
+                        }
+                    }
+
+                    routes.push({
+                        name: result.name,
+                        duration: duration,
+                        status: status,
+                        details: details,
+                        distance: distanceInMiles + ' mi',
+                        normalDuration: normalDuration,
+                        delay: Math.round(delayMinutes) + ' min'
+                    });
+                }
+            });
+
+            if (routes.length === 0) {
+                reject(new Error('No routes found between locations'));
+                return;
+            }
+
+            // Determine overall traffic level
+            var heavyCount = routes.filter(function(r) { return r.status === 'heavy'; }).length;
+            var moderateCount = routes.filter(function(r) { return r.status === 'moderate'; }).length;
+            
+            var overallLevel = 'light';
+            if (heavyCount > 0) {
+                overallLevel = 'heavy';
+            } else if (moderateCount > 0) {
+                overallLevel = 'moderate';
+            }
+
+            var trafficData = {
+                routes: routes,
+                conditions: {
+                    level: overallLevel,
+                    incidents: totalIncidents,
+                    lastUpdated: new Date(),
+                    source: 'TomTom Traffic'
+                }
+            };
+
+            resolve(trafficData);
+        })
+        .catch(function(error) {
+            clientLog('error', 'TomTom API error', error);
+            reject(new Error('Failed to get traffic data: ' + error.message));
+        });
+    }
+
+    // Helper functions
+    function formatDuration(minutes) {
+        if (minutes < 60) {
+            return Math.round(minutes) + ' min';
+        } else {
+            var hours = Math.floor(minutes / 60);
+            var mins = Math.round(minutes % 60);
+            return hours + 'h ' + mins + 'm';
+        }
+    }
+
+    function encodeHTML(str) {
+        return String(str).replace(/[&<>"']/g, function(match) {
+            var htmlEscapes = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            };
+            return htmlEscapes[match];
+        });
+    }
+
+    function fetchTrafficData(location) {
+        if (!location || !location.trim()) {
+            showTrafficError('Please enter a valid location');
+            return;
+        }
+
+        showTrafficLoading();
+        saveTrafficLocation(location.trim());
+        
+        // First geocode the location, then get traffic data
+        geocodeLocation(location)
+            .then(function(coords) {
+                clientLog('info', 'Geocoded location: ' + coords.display_name);
+                return getTrafficRoutes(coords.lat, coords.lng, location);
+            })
+            .then(function(trafficData) {
+                showTrafficInfo(location, trafficData);
+                clientLog('info', 'Traffic data loaded for: ' + location);
+            })
+            .catch(function(error) {
+                clientLog('error', 'Traffic API error', error);
+                showTrafficError('Failed to get traffic data: ' + error.message);
+            });
+    }
+
+    // Event listeners
+    if (calendarCard) {
+        calendarCard.addEventListener('click', function(e) {
+            if (!isTrafficView) {
+                switchToTrafficView();
+            }
+        });
+    }
+
+    if (backToCalendarBtn) {
+        backToCalendarBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            switchToCalendarView();
+        });
+    }
+
+    if (getTrafficBtn) {
+        getTrafficBtn.addEventListener('click', function() {
+            var location = trafficLocation.value;
+            fetchTrafficData(location);
+        });
+    }
+
+    if (trafficLocation) {
+        trafficLocation.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getTrafficBtn.click();
+            }
+        });
+    }
+
+    // Initialize traffic view
+    showTrafficPlaceholder();
+    
+    // Request location permissions on startup for better traffic functionality
+    requestLocationPermission();
+    
+    clientLog('info', 'Traffic card functionality with API integration initialized');
+})();

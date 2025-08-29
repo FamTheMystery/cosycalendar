@@ -20,5 +20,12 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+# Client-side logs
 client.log
-*public-backup/
+
+# API Configuration (contains sensitive keys)
+public/config.js
+
+# Backup folders
+public-backup/

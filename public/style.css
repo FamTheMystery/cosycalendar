@@ -79,35 +79,6 @@ body {
   margin-bottom: 0; /* gap handles spacing */
 }
 
-/* --- iOS 10 & older: fallback for no gap support and fix tasks scroll bug ---
-.ios-old .left-column {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-}
-.ios-old .left-column .card {
-  margin-bottom: 18px !important; /* fallback for gap 
-}
-.ios-old .left-column .card:last-child {
-  margin-bottom: 0 !important;
-}
-
-/* Fix tasks scroll bug for iOS 10: Use max-height and remove flex on .tasks-inner
-.ios-old .tasks-card .tasks-inner {
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  max-height: 60vh !important;
-  min-height: 0 !important;
-   flex: 1 1 auto !important; 
-}
-
-/* Optionally, for best compatibility, set .tasks-card to flex none on iOS-old
-.ios-old .tasks-card {
-  display: flex !important;
-} */
-
 /* Clock card and extra card spacing in all browsers */
 .left-column .clock-card {
   margin-bottom: 18px;
@@ -478,12 +449,6 @@ body {
 .task-title, .tasks-card .task-title { color: var(--card-text); }
 .task-due, .tasks-card .task-due { color: var(--card-text); }
 
-/* Slightly conservative sizing for old iOS devices to avoid cramped layouts */
-.ios-old .card { padding: 14px; font-size: 1.6em; }
-.ios-old .calendar th, .ios-old .calendar td { padding: 8px 6px; font-size: 0.95em; }
-.ios-old .container { padding: 10px; }
-.ios-old .calendar-card { margin-left: 8px; }
-
 /* Ambient mode: frosted-glass cards and background image handling */
 body.ambient-mode {
   background-color: var(--bg);
@@ -749,4 +714,331 @@ body.ambient-mode.ambient-darken .secondary-clock {
 .weather-hour-summary {
   font-size: 0.85em; /* Smaller summary */
   color: var(--card-text); /* Use theme text color */
+}
+
+/* Traffic view styles - should work within the existing card structure */
+.traffic-view {
+  width: 100%;
+  height: 350px; /* Fixed height instead of 100% */
+  display: -webkit-box; /* iOS 10 fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical; /* iOS 10 fallback */
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding: 0; /* Remove padding as card already has padding */
+  box-sizing: border-box;
+}
+
+.traffic-header {
+  display: -webkit-box; /* iOS 10 fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal; /* iOS 10 fallback */
+  -webkit-box-direction: normal;
+  -webkit-box-pack: justify; /* iOS 10 fallback */
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center; /* iOS 10 fallback */
+  -ms-flex-align: center;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.traffic-header h2 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 1.2em; /* Consistent sizing */
+  font-weight: 600;
+  -webkit-box-flex: 1; /* iOS 10 fallback */
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  display: block;
+  max-width: 60%;
+}
+
+.back-btn {
+  background: var(--accent);
+  color: var(--card-bg);
+  border: none;
+  padding: 4px 10px; /* Updated padding */
+  border-radius: 8px; /* Smaller radius */
+  cursor: pointer;
+  font-size: 0.8em; /* Updated font size */
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: var(--btn-shadow);
+  margin-right: 0;
+  margin-left: 8px;
+  display: block;
+}
+
+.back-btn:hover {
+  box-shadow: var(--hover-shadow);
+  transform: translateY(-1px);
+}
+
+.traffic-content {
+  height: 280px; /* Fixed height instead of flex: 1 */
+  display: -webkit-box; /* iOS 10 fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical; /* iOS 10 fallback */
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-height: 0; /* Important for flex containers */
+}
+
+.traffic-location {
+  display: -webkit-box; /* iOS 10 fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal; /* iOS 10 fallback */
+  -webkit-box-direction: normal;
+  gap: 0; /* Remove gap for better control */
+  margin-bottom: 12px; /* Smaller margin */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.traffic-location input {
+  width: 66%; /* Specific width */
+  margin-right: 8px;
+  margin-bottom: 0;
+  padding: 8px;
+  border: 2px solid var(--accent);
+  border-radius: 8px; /* Smaller radius */
+  font-size: 0.95em; /* Updated font size */
+  background: var(--card-bg);
+  color: var(--card-text);
+  box-sizing: border-box;
+}
+
+.traffic-location input:focus {
+  outline: none;
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px rgba(168, 92, 122, 0.1);
+}
+
+.traffic-btn {
+  background: var(--accent);
+  color: var(--card-bg);
+  border: none;
+  width: 32%; /* Specific width */
+  padding: 8px 0; /* Updated padding */
+  border-radius: 8px; /* Smaller radius */
+  cursor: pointer;
+  font-size: 0.95em; /* Updated font size */
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: var(--btn-shadow);
+  white-space: nowrap;
+  margin-right: 0;
+  margin-left: 0;
+  box-sizing: border-box;
+}
+
+.traffic-btn:hover {
+  box-shadow: var(--hover-shadow);
+  transform: translateY(-1px);
+}
+
+.traffic-results {
+  height: 220px; /* Fixed height instead of flex: 1 */
+  background: rgba(255, 255, 255, 0.2); /* Less opacity */
+  border-radius: 12px; /* Smaller radius */
+  padding: 12px; /* Smaller padding */
+  display: block; /* Change from flex to block for better scrolling */
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Hide horizontal scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  box-sizing: border-box;
+}
+
+.traffic-placeholder {
+  color: var(--card-text);
+  font-size: 0.95em; /* Smaller font */
+  text-align: center;
+  opacity: 0.7;
+  padding: 16px;
+  /* Center the placeholder when no content */
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.traffic-info {
+  width: 100%;
+  font-size: 0.85em; /* Smaller overall font size */
+}
+
+.traffic-route {
+  background: rgba(255, 255, 255, 0.4); /* Lighter background */
+  border-radius: 8px; /* Smaller radius */
+  padding: 10px; /* Smaller padding */
+  margin-bottom: 8px; /* Smaller margin */
+  border-left: 3px solid var(--accent); /* Thinner border */
+}
+
+.traffic-route-header {
+  display: -webkit-box; /* iOS 10 fallback */
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify; /* iOS 10 fallback */
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center; /* iOS 10 fallback */
+  -ms-flex-align: center;
+  align-items: center;
+  margin-bottom: 6px; /* Smaller margin */
+}
+
+.traffic-route-name {
+  font-weight: 600;
+  font-size: 1.1em;
+  color: var(--accent);
+}
+
+.traffic-duration {
+  background: var(--accent);
+  color: var(--card-bg);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.traffic-details {
+  color: var(--card-text);
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.traffic-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.traffic-status.light {
+  background: #d4edda;
+  color: #155724;
+}
+
+.traffic-status.moderate {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.traffic-status.heavy {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Enhanced traffic features */
+.traffic-distance {
+  color: #9b5f7c;
+  font-size: 0.85em;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.traffic-conditions {
+  background: rgba(255,255,255,0.4);
+  border: 1px solid rgba(168,92,122,0.15);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.traffic-conditions h4 {
+  color: var(--accent);
+  margin: 0 0 12px 0;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.condition-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  color: #6d3b5a;
+  font-size: 0.9em;
+  border-bottom: 1px solid rgba(168,92,122,0.1);
+}
+
+.condition-item:last-child {
+  border-bottom: none;
+}
+
+.traffic-level-light {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.traffic-level-moderate {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.traffic-level-heavy {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Hide other cards when traffic is expanded */
+.hide-on-traffic-expand {
+  display: none !important;
+}
+
+/* Responsive adjustments for traffic view */
+@media (max-width: 768px) {
+  .traffic-location {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .traffic-route-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .traffic-duration {
+    font-size: 1em;
+  }
+  
+  .condition-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
+/* Make calendar card clickable */
+.calendar-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+/* Ensure traffic card doesn't overflow */
+.traffic-card, .card {
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
 }
