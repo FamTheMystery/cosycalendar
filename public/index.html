@@ -96,6 +96,18 @@
         </label>
         <div style="height:6px"></div>
         <div id="tasksListStatus" style="font-size:0.82em; color:#7a3a57;">Click "Load lists" after saving your endpoint to populate available lists.</div>
+        
+        <div style="height:8px"></div>
+        <label style="display:block; margin-top:8px; font-size:0.95em;">Default Tasklist
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <select id="defaultTasksListSelect" style="flex:1; padding:6px; border-radius:8px; box-sizing:border-box;">
+              <option value="">No default (use device list)</option>
+            </select>
+            <button id="saveDefaultListBtn" class="rearrange-btn" style="flex:0 0 auto;">Save Default</button>
+          </div>
+        </label>
+        <div style="height:6px"></div>
+        <div id="defaultListStatus" style="font-size:0.82em; color:#7a3a57;">Select a list as default to automatically load it on startup.</div>
   <div style="height:10px"></div>
 
         <label style="display:block; margin-top:8px; font-size:0.95em;">Weather location
@@ -136,6 +148,26 @@
         </div>
         <div class="card weather-card" data-id="weather-card" id="weatherCard" style="margin-top:14px;">
           <div class="weather" id="weather">Weather</div>
+          <div class="weather-details" id="weatherDetails" style="display:none;">
+            <div class="weather-details-left">
+              <div class="weather-details-icon" style="font-size:4em;">☀️</div>
+              <div class="weather-details-temp">--°</div>
+              <div class="weather-details-summary">Loading...</div>
+            </div>
+            <div class="weather-details-right">
+              <div class="weather-details-location">Location</div>
+              <div class="weather-details-highlow">High: --° / Low: --°</div>
+              <div class="weather-details-section"><strong>Hourly Forecast</strong><br>
+                <div class="weather-details-hourly-card">
+                  <div class="weather-hour-block">Loading...</div>
+                </div>
+              </div>
+              <div class="weather-details-section weather-details-forecast-daily"><strong>10-Day Forecast</strong><br>
+                Loading forecast data...
+              </div>
+            </div>
+          </div>
+          <button id="closeWeatherDetailsBtn" style="display:none; position:absolute; top:12px; right:18px; z-index:10; font-size:2em; background:none; border:none; color:#fff; cursor:pointer;">×</button>
         </div>
       </div>
     </div>

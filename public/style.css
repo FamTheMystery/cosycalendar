@@ -170,7 +170,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  transition: background 0.3s, box-shadow 0.3s, color 0.2s;
+  transition: background 0.3s, box-shadow 0.3s, color 0.2s, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), width 0.4s cubic-bezier(0.23, 1, 0.32, 1), height 0.4s cubic-bezier(0.23, 1, 0.32, 1), top 0.4s cubic-bezier(0.23, 1, 0.32, 1), left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   color: var(--card-text);
   font-size: 2em;
   box-sizing: border-box;
@@ -525,4 +525,228 @@ body.ambient-mode.ambient-darken .card .task-title,
 body.ambient-mode.ambient-darken .card .task-due,
 body.ambient-mode.ambient-darken .secondary-clock {
   color: #fff;
+}
+
+/* Weather card expanded styles */
+.weather-card {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+}
+
+.weather-card.expanded {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 800px;
+  max-width: 96vw;
+  height: 520px;
+  max-height: 90vh;
+  z-index: 2000;
+  margin: 0 !important;
+  border-radius: 32px;
+  overflow: hidden; /* iOS 10 fix: clip all child content to prevent backdrop-filter corners */
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: row;
+  background: var(--card-bg);
+  padding: 0;
+  animation: weatherExpand 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes weatherExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+    border-radius: 24px;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    border-radius: 32px;
+  }
+}
+
+.weather-card.expanded .weather {
+  display: none;
+}
+
+.weather-card.expanded #weatherDetails {
+  display: flex !important;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}
+
+.weather-card.expanded #closeWeatherDetailsBtn {
+  display: block !important;
+}
+.hide-on-weather-expand {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.weather-card.expanded .hide-on-weather-expand {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.weather-details {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  background: rgba(255, 255, 255, 0.15); /* Light frosted glass background */
+  backdrop-filter: blur(20px); /* Frosted glass blur effect */
+  -webkit-backdrop-filter: blur(20px); /* Safari support */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle glass border */
+  border-radius: 32px; /* Match expanded card border radius */
+  overflow: hidden; /* iOS 10 fix: prevent backdrop-filter from leaking outside rounded corners */
+  color: var(--card-text); /* Use theme text color */
+}
+.weather-details-left {
+  width: 25%;
+  background: rgba(255, 255, 255, 0.1); /* Slightly more frosted left panel */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 12px;
+  margin-right: 32px; /* iOS 10 compatible spacing between left and right */
+  box-sizing: border-box;
+}
+
+.weather-details-right {
+  width: 75%;
+  padding: 48px 32px 32px 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  font-size: 0.9em; /* Make overall text smaller */
+  flex: 1; /* Take remaining space after left panel and margin */
+}
+.weather-details-icon {
+  width: auto;
+  height: auto;
+  font-size: 3.5em; /* Slightly smaller icon */
+  margin-bottom: 0;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-details-temp {
+  font-size: 2.4em; /* Smaller main temperature */
+  font-weight: bold;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.weather-details-summary {
+  font-size: 1.1em; /* Smaller summary text */
+  margin-bottom: 16px;
+  text-align: center;
+}
+.weather-details-section {
+  margin-bottom: 20px; /* Reduced spacing */
+}
+
+.weather-details-forecast {
+  font-size: 0.95em; /* Smaller forecast text */
+}
+.weather-details-forecast-hourly, .weather-details-forecast-daily {
+  margin-bottom: 16px; /* Reduced spacing */
+}
+.weather-details-location {
+  font-size: 1.05em; /* Smaller location text */
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.weather-details-highlow {
+  font-size: 1.05em; /* Smaller high/low text */
+  margin-bottom: 10px;
+}
+.weather-details-conditions {
+  font-size: 0.95em; /* Smaller conditions text */
+  margin-bottom: 8px;
+  color: var(--card-text); /* Use theme text color */
+}
+.weather-details-rain {
+  font-size: 0.95em; /* Smaller conditions text */
+  margin-bottom: 10px;
+  color: var(--card-text); /* Use theme text color */
+}
+.weather-details-hourly-card {
+  background: rgba(255, 255, 255, 0.12); /* Light frosted hourly card */
+  backdrop-filter: blur(10px); /* Subtle blur for glass effect */
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
+  border-radius: 18px;
+  overflow: hidden; /* iOS 10 fix: prevent backdrop-filter leaking */
+  padding: 16px 10px; /* Reduced padding */
+  margin-bottom: 20px; /* Reduced margin */
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: row;
+  gap: 16px; /* Reduced gap */
+  max-width: 100%;
+}
+
+/* Add backdrop for expanded weather card */
+.weather-card.expanded::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+  opacity: 0;
+  animation: backdropFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes backdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.weather-hour-block {
+  min-width: 70px; /* Narrower blocks */
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18); /* Light frosted hour block */
+  backdrop-filter: blur(8px); /* Light blur effect */
+  -webkit-backdrop-filter: blur(8px); /* Safari support */
+  border-radius: 12px;
+  overflow: hidden; /* iOS 10 fix: prevent backdrop-filter leaking */
+  padding: 6px 4px; /* Reduced padding */
+  font-size: 0.9em; /* Smaller font */
+  color: var(--card-text); /* Use theme text color */
+}
+.weather-hour-time {
+  font-weight: 600;
+  margin-bottom: 3px; /* Reduced margin */
+  font-size: 0.85em; /* Smaller time text */
+}
+.weather-hour-temp {
+  font-size: 1.1em; /* Smaller temperature */
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+.weather-hour-summary {
+  font-size: 0.85em; /* Smaller summary */
+  color: var(--card-text); /* Use theme text color */
 }

@@ -15,6 +15,39 @@ http.createServer((req, res) => {
   }
 
   // simple proxy endpoints so client doesn't call third-party APIs directly
+  if (parsed && parsed.pathname === '/log' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk.toString());
+    req.on('end', () => {
+      try {
+        const logData = JSON.parse(body);
+        const timestamp = new Date().toISOString();
+        const logLine = `[${timestamp}] [CLIENT-${logData.level}] ${logData.message}${logData.data ? ' ' + JSON.stringify(logData.data) : ''}\n`;
+        
+        // Ensure the client.log file exists
+        if (!fs.existsSync('client.log')) {
+          fs.writeFileSync('client.log', `[${timestamp}] Client log initialized\n`);
+          console.log('Created client.log file');
+        }
+        
+        fs.appendFile('client.log', logLine, (err) => {
+          if (err) {
+            console.error('Failed to write client log:', err);
+          } else {
+            console.log('Client log written:', logData.level, logData.message);
+          }
+        });
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true }));
+      } catch (e) {
+        console.error('Error processing client log:', e);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+    return;
+  }
   if (parsed && parsed.pathname === '/proxy/geocode') {
   var q = parsed.searchParams.get('name') || '';
   console.log('[proxy] geocode request for:', q);
@@ -24,8 +57,25 @@ http.createServer((req, res) => {
   var lat = parsed.searchParams.get('latitude') || parsed.searchParams.get('lat') || '';
   var lon = parsed.searchParams.get('longitude') || parsed.searchParams.get('lon') || '';
   console.log('[proxy] weather request for:', lat, lon);
-    var target = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon) + '&current_weather=true&timezone=auto';
-    return proxyRequest(target, res);
+    // Change this line (around line 19)
+  var target = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) +
+      '&longitude=' + encodeURIComponent(lon) +
+      '&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&timezone=auto';
+  return proxyRequest(target, res);
+  }
+  if (parsed && parsed.pathname === '/proxy/detailed-weather') {
+  var lat = parsed.searchParams.get('latitude') || parsed.searchParams.get('lat') || '';
+  var lon = parsed.searchParams.get('longitude') || parsed.searchParams.get('lon') || '';
+  console.log('[proxy] detailed weather request for:', lat, lon);
+    // Enhanced request with more hourly data and extended forecast
+  var target = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(lat) +
+      '&longitude=' + encodeURIComponent(lon) +
+      '&current_weather=true' +
+      '&hourly=temperature_2m,weathercode,relative_humidity_2m,wind_speed_10m,apparent_temperature,precipitation_probability' +
+      '&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum,wind_speed_10m_max' +
+      '&timezone=auto' +
+      '&forecast_days=10';
+  return proxyRequest(target, res);
   }
 
   const filePath = path.join(publicDir, req.url === '/' ? '/index.html' : req.url);

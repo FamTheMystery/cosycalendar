@@ -94,104 +94,6 @@ setInterval(checkMidnightReload, 1000);
         clockCard.appendChild(sec);
     }
 })();
-// === CLIENT-SIDE LOGGING ===
-function clientLog(level, message, data) {
-    // Also log to console
-    console[level] ? console[level](message, data) : console.log(message, data);
-    
-    // Send to server for file logging
-    try {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/log', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({
-            level: level.toUpperCase(),
-            message: message,
-            data: data
-        }));
-    } catch (e) {
-        // Ignore logging errors to avoid infinite loops
-    }
-}
-
-// Test the logging system
-clientLog('info', 'Script.js loaded - client logging system initialized');
-
-// Global weather mapping functions (moved outside IIFE for accessibility)
-function weatherTextFromCode(code, timeStr) {
-    var isNight = isNightTime(timeStr);
-    var map = {
-        0: isNight ? 'Clear night' : 'Clear',
-        1: isNight ? 'Mainly clear night' : 'Mainly clear',
-        2: 'Partly cloudy',
-        3: 'Overcast',
-        45: 'Fog',
-        48: 'Depositing rime fog',
-        51: 'Light drizzle',
-        53: 'Moderate drizzle',
-        55: 'Dense drizzle',
-        61: 'Light rain',
-        63: 'Moderate rain',
-        65: 'Heavy rain',
-        71: 'Light snow',
-        73: 'Snow',
-        75: 'Heavy snow',
-        80: 'Rain showers',
-        81: 'Heavy showers',
-        95: 'Thunder',
-        96: 'Thunder + hail'
-    };
-    return map.hasOwnProperty(code) ? map[code] : 'Weather';
-}
-
-function weatherIconFromCode(code, timeStr) {
-    var isNight = isNightTime(timeStr);
-    // Return a simple emoji for broad compatibility on older iOS
-    var icons = {};
-    icons[0] = isNight ? '🌙' : '☀️';  // Moon for clear night, sun for clear day
-    icons[1] = isNight ? '🌙' : '🌙☁️'; // Moon for mainly clear night, sun/cloud for day
-    icons[2] = '⛅';
-    icons[3] = '☁️';
-    icons[45] = '🌫️';
-    icons[48] = '🌫️';
-    icons[51] = '🌦️';
-    icons[53] = '🌦️';
-    icons[55] = '🌧️';
-    icons[61] = '🌧️';
-    icons[63] = '🌧️';
-    icons[65] = '🌧️';
-    icons[71] = '🌨️';
-    icons[73] = '🌨️';
-    icons[75] = '❄️';
-    icons[80] = '🌦️';
-    icons[81] = '🌧️';
-    icons[95] = '⛈️';
-    icons[96] = '⛈️';
-    return icons.hasOwnProperty(code) ? icons[code] : (isNight ? '🌙' : '🌤️');
-}
-
-// Helper function to determine if it's nighttime
-function isNightTime(timeStr) {
-    if (!timeStr) {
-        // If no time provided, use current time
-        var now = new Date();
-        var hour = now.getHours();
-        return hour < 6 || hour >= 19; // Consider 7 PM to 6 AM as night
-    }
-    
-    // If timeStr is provided, try to parse it
-    if (typeof timeStr === 'string') {
-        var time = new Date(timeStr);
-        if (!isNaN(time.getTime())) {
-            var hour = time.getHours();
-            return hour < 6 || hour >= 19; // Consider 7 PM to 6 AM as night
-        }
-    }
-    
-    // If we can't determine, default to day
-    return false;
-}
-
 // Weather widget: uses Open-Meteo geocoding + forecast APIs (no API key)
 (function() {
     var locInput = document.getElementById('weatherLocation');
@@ -226,13 +128,62 @@ function isNightTime(timeStr) {
         }
     }
 
+    function weatherTextFromCode(code) {
+        var map = {
+            0: 'Clear',
+            1: 'Mainly clear',
+            2: 'Partly cloudy',
+            3: 'Overcast',
+            45: 'Fog',
+            48: 'Depositing rime fog',
+            51: 'Light drizzle',
+            53: 'Moderate drizzle',
+            55: 'Dense drizzle',
+            61: 'Light rain',
+            63: 'Moderate rain',
+            65: 'Heavy rain',
+            71: 'Light snow',
+            73: 'Snow',
+            75: 'Heavy snow',
+            80: 'Rain showers',
+            81: 'Heavy showers',
+            95: 'Thunder',
+            96: 'Thunder + hail'
+        };
+        return map.hasOwnProperty(code) ? map[code] : 'Weather';
+    }
+
+    function weatherIconFromCode(code) {
+        // Return a simple emoji for broad compatibility on older iOS
+        var icons = {};
+        icons[0] = '☀️';
+        icons[1] = '🌤️';
+        icons[2] = '⛅';
+        icons[3] = '☁️';
+        icons[45] = '🌫️';
+        icons[48] = '🌫️';
+        icons[51] = '🌦️';
+        icons[53] = '🌦️';
+        icons[55] = '🌧️';
+        icons[61] = '🌧️';
+        icons[63] = '🌧️';
+        icons[65] = '🌧️';
+        icons[71] = '🌨️';
+        icons[73] = '🌨️';
+        icons[75] = '❄️';
+        icons[80] = '🌦️';
+        icons[81] = '🌧️';
+        icons[95] = '⛈️';
+        icons[96] = '⛈️';
+        return icons.hasOwnProperty(code) ? icons[code] : '🌤️';
+    }
+
     function renderCurrentWeather(data) {
         if (!weatherEl) return;
         if (!data || !data.current_weather) { showWeatherMessage('No weather data'); return; }
         var cw = data.current_weather;
-        var currentTime = cw.time || new Date().toISOString();
-        var text = weatherTextFromCode(cw.weathercode, currentTime);
-        var icon = weatherIconFromCode(cw.weathercode, currentTime);
+        var text = weatherTextFromCode(cw.weathercode);
+        var icon = weatherIconFromCode(cw.weathercode);
         var temp = Math.round(cw.temperature);
         var html = '<div style="display:flex; align-items:center; justify-content:space-between;">' +
                    '<div style="display:flex; align-items:center; flex:1;">' +
@@ -251,7 +202,7 @@ function isNightTime(timeStr) {
 
     function fetchWeatherByCoords(lat, lon) {
         if (status) status.textContent = 'Loading weather...';
-    var url = '/proxy/detailed-weather?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon);
+    var url = '/proxy/weather?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon);
         xhrGet(url, function(err, data) {
             if (err) { showWeatherMessage('Weather unavailable'); if (status) status.textContent = 'Failed to load weather'; return; }
             renderCurrentWeather(data);
@@ -465,19 +416,10 @@ setInterval(updateGreeting, 60 * 1000);
     var tasksListSelect = document.getElementById('tasksListSelect');
     var loadListsBtn = document.getElementById('loadListsBtn');
     var tasksListStatus = document.getElementById('tasksListStatus');
-    var defaultTasksListSelect = document.getElementById('defaultTasksListSelect');
-    var saveDefaultListBtn = document.getElementById('saveDefaultListBtn');
-    var defaultListStatus = document.getElementById('defaultListStatus');
     var fullscreenBtn = document.getElementById('fullscreenBtn');
     var saved = null;
-    var availableLists = []; // Store available lists for default selection
-    
     try { saved = localStorage.getItem('cosy-tasks-endpoint'); } catch (e) { saved = null; }
     if (saved && endpointInput) endpointInput.value = saved;
-    
-    // Load saved default list
-    var savedDefaultList = null;
-    try { savedDefaultList = localStorage.getItem('cosy-default-tasks-list'); } catch (e) { savedDefaultList = null; }
     try { var savedList = localStorage.getItem('cosy-tasks-listid'); if (savedList && tasksListSelect) tasksListSelect.value = savedList; } catch (e) {}
 
     function showTasksMessage(msg) {
@@ -593,9 +535,6 @@ setInterval(updateGreeting, 60 * 1000);
             else if (Object.prototype.toString.call(data) === '[object Array]') lists = data;
             else { if (tasksListStatus) tasksListStatus.innerText = 'Unexpected list response'; return; }
 
-            // Store available lists for default selection
-            availableLists = lists;
-
             // populate select
             if (tasksListSelect) {
                 // keep default option
@@ -611,54 +550,11 @@ setInterval(updateGreeting, 60 * 1000);
                 try { var saved = localStorage.getItem('cosy-tasks-listid'); if (saved) tasksListSelect.value = saved; } catch (e) {}
                 if (tasksListStatus) tasksListStatus.innerText = 'Loaded ' + lists.length + ' lists.';
             }
-            
-            // populate default list selector
-            if (defaultTasksListSelect) {
-                var defaultOpts = '<option value="">No default (use device list)</option>';
-                for (var j = 0; j < lists.length; j++) {
-                    var list = lists[j];
-                    var listId = list.id || list.etag || (list.title && list.title.replace(/\s+/g,'_')) || ('list'+j);
-                    var listTitle = list.title || listId;
-                    defaultOpts += '<option value="' + encodeURIComponent(listId) + '">' + (listTitle) + '</option>';
-                }
-                defaultTasksListSelect.innerHTML = defaultOpts;
-                // restore saved default selection
-                if (savedDefaultList) {
-                    defaultTasksListSelect.value = savedDefaultList;
-                }
-                if (defaultListStatus) defaultListStatus.innerText = 'Default list options loaded.';
-            }
         });
     }
 
     if (loadListsBtn) loadListsBtn.addEventListener('click', function() { loadTasklists(); });
     if (tasksListSelect) tasksListSelect.addEventListener('change', function() { try { localStorage.setItem('cosy-tasks-listid', tasksListSelect.value || ''); } catch (e) {} });
-
-    // Save default list button functionality
-    if (saveDefaultListBtn) {
-        saveDefaultListBtn.addEventListener('click', function() {
-            var selectedDefault = defaultTasksListSelect ? defaultTasksListSelect.value : '';
-            try {
-                localStorage.setItem('cosy-default-tasks-list', selectedDefault);
-                if (defaultListStatus) {
-                    if (selectedDefault) {
-                        var selectedText = defaultTasksListSelect.options[defaultTasksListSelect.selectedIndex].text;
-                        defaultListStatus.innerText = 'Default list saved: ' + selectedText;
-                        // Auto-switch to the default list
-                        if (tasksListSelect) {
-                            tasksListSelect.value = selectedDefault;
-                            localStorage.setItem('cosy-tasks-listid', selectedDefault);
-                            fetchTasks(); // Reload tasks with new default
-                        }
-                    } else {
-                        defaultListStatus.innerText = 'Default list cleared.';
-                    }
-                }
-            } catch (e) {
-                if (defaultListStatus) defaultListStatus.innerText = 'Failed to save default list.';
-            }
-        });
-    }
 
     // Fullscreen handling (works on browsers that support the Fullscreen API)
     function isFullscreen() {
@@ -722,27 +618,7 @@ setInterval(updateGreeting, 60 * 1000);
         }
     }
     // initial fetch if endpoint present
-    setTimeout(function() { 
-        try { 
-            if (localStorage.getItem('cosy-tasks-endpoint')) {
-                // Auto-load default list if set
-                var defaultList = localStorage.getItem('cosy-default-tasks-list');
-                if (defaultList && tasksListSelect) {
-                    // Load lists first, then set default
-                    loadTasklists();
-                    setTimeout(function() {
-                        if (tasksListSelect) {
-                            tasksListSelect.value = defaultList;
-                            localStorage.setItem('cosy-tasks-listid', defaultList);
-                        }
-                        fetchTasks();
-                    }, 500);
-                } else {
-                    fetchTasks();
-                }
-            }
-        } catch (e) {} 
-    }, 400);
+    setTimeout(function() { try { if (localStorage.getItem('cosy-tasks-endpoint')) fetchTasks(); } catch (e) {} }, 400);
 
 })();
 function isiOSOlderThan11() {
@@ -1453,199 +1329,119 @@ setInterval(function(){
     }
 
     function renderWeatherDetails(data) {
-        clientLog('info', 'renderWeatherDetails called with data:', data);
-        try {
-            // Use emoji for icon
-            var emoji = (typeof data.emoji !== 'undefined') ? data.emoji : '☀️';
-            var temp = (typeof data.temp !== 'undefined') ? data.temp : '--';
-            var summary = (typeof data.summary !== 'undefined') ? data.summary : '';
-            var high = (typeof data.high !== 'undefined') ? data.high : '--';
-            var low = (typeof data.low !== 'undefined') ? data.low : '--';
-            // Get location from settings panel, fallback to data.location
-            var locInput = document.getElementById('weatherLocation');
-            var location = (locInput && locInput.value) ? locInput.value : (typeof data.location !== 'undefined' ? data.location : '');
-            var hourly = Array.isArray(data.hourly) ? data.hourly : [];
-            var daily = Array.isArray(data.daily) ? data.daily : [];
+        // Use emoji for icon
+        var emoji = data.emoji || '☀️';
+        var temp = data.temp || '--';
+        var summary = data.summary || '';
+        var high = data.high || '--';
+        var low = data.low || '--';
+        // Get location from settings panel
+        var locInput = document.getElementById('weatherLocation');
+        var location = (locInput && locInput.value) ? locInput.value : (data.location || '');
+        var hourly = data.hourly || [];
+        var daily = data.daily || [];
 
-            var leftHtml = '<div class="weather-details-left">';
-            leftHtml += '<div class="weather-details-icon" style="font-size:4em;">' + emoji + '</div>';
-            leftHtml += '<div class="weather-details-temp">' + (temp !== '--' ? temp + '°' : '--') + '</div>';
-            leftHtml += '<div class="weather-details-summary">' + (summary || '') + '</div>';
-            leftHtml += '</div>';
+        var leftHtml = '<div class="weather-details-left">';
+        leftHtml += '<div class="weather-details-icon" style="font-size:4em;">' + emoji + '</div>';
+        leftHtml += '<div class="weather-details-temp">' + temp + '°</div>';
+        leftHtml += '<div class="weather-details-summary">' + summary + '</div>';
+        leftHtml += '</div>';
 
-            var rightHtml = '<div class="weather-details-right">';
-            rightHtml += '<div class="weather-details-location">' + location + '</div>';
-            rightHtml += '<div class="weather-details-highlow">High: ' + (high !== '--' ? high + '°' : '--') + ' / Low: ' + (low !== '--' ? low + '°' : '--') + '</div>';
-            
-            // Add weather conditions with feels like and rain chance
-            var humidity = (typeof data.humidity !== 'undefined') ? data.humidity : 'N/A';
-            var windSpeed = (typeof data.windSpeed !== 'undefined') ? data.windSpeed : 'N/A';
-            var feelsLike = (typeof data.feelsLike !== 'undefined') ? data.feelsLike : 'N/A';
-            var rainChance = (typeof data.rainChance !== 'undefined') ? data.rainChance : 'N/A';
-            rightHtml += '<div class="weather-details-conditions">Feels like: ' + feelsLike + ' | Rain: ' + rainChance + '</div>';
-            rightHtml += '<div class="weather-details-conditions">Humidity: ' + humidity + ' | Wind: ' + windSpeed + '</div>';
-            
-            rightHtml += '<div class="weather-details-section"><strong>Hourly Forecast</strong><br>';
-            rightHtml += '<div class="weather-details-hourly-card">';
-            if (hourly.length === 0) {
-                rightHtml += '<div class="weather-hour-block">No hourly data</div>';
-            } else {
-                hourly.forEach(function(h) {
-                    rightHtml += '<div class="weather-hour-block">';
-                    rightHtml += '<div class="weather-hour-time">' + (h.time || '--') + '</div>';
-                    rightHtml += '<div style="font-size:1.5em; margin:4px 0;">' + (h.icon || '🌤️') + '</div>';
-                    rightHtml += '<div class="weather-hour-temp">' + (typeof h.temp !== 'undefined' ? h.temp + '°' : '--') + '</div>';
-                    rightHtml += '</div>';
-                });
-            }
-            rightHtml += '</div></div>';
-            rightHtml += '<div class="weather-details-section weather-details-forecast-daily"><strong>10-Day Forecast</strong><br>';
-            if (daily.length === 0) {
-                rightHtml += 'No daily forecast data<br>';
-            } else {
-                daily.forEach(function(d) {
-                    rightHtml += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1);">';
-                    rightHtml += '<div style="flex:1;">' + (d.day || '--') + '</div>';
-                    rightHtml += '<div style="flex:0 0 auto; margin:0 12px; font-size:1.2em;">' + (d.icon || '🌤️') + '</div>';
-                    rightHtml += '<div style="flex:0 0 auto;">' + (typeof d.high !== 'undefined' ? d.high + '°' : '--') + ' / ' + (typeof d.low !== 'undefined' ? d.low + '°' : '--') + '</div>';
-                    rightHtml += '</div>';
-                });
-            }
+        var rightHtml = '<div class="weather-details-right">';
+        rightHtml += '<div class="weather-details-location">' + location + '</div>';
+        rightHtml += '<div class="weather-details-highlow">High: ' + high + '° / Low: ' + low + '°</div>';
+        rightHtml += '<div class="weather-details-section"><strong>Hourly Forecast</strong><br>';
+        rightHtml += '<div class="weather-details-hourly-card">';
+        hourly.forEach(function(h) {
+            rightHtml += '<div class="weather-hour-block">';
+            rightHtml += '<div class="weather-hour-time">' + h.time + '</div>';
+            rightHtml += '<div class="weather-hour-temp">' + h.temp + '°</div>';
+            rightHtml += '<div class="weather-hour-summary">' + h.summary + '</div>';
             rightHtml += '</div>';
-            rightHtml += '</div>';
+        });
+        rightHtml += '</div></div>';
+        rightHtml += '<div class="weather-details-section weather-details-forecast-daily"><strong>10-Day Forecast</strong><br>';
+        daily.forEach(function(d) {
+            rightHtml += d.date + ': ' + d.high + '°/' + d.low + '° ' + (d.rain ? 'Rain' : 'No Rain') + ' ' + d.summary + '<br>';
+        });
+        rightHtml += '</div>';
+        rightHtml += '</div>';
 
-            weatherDetails.innerHTML = leftHtml + rightHtml;
-            console.log('Weather details rendered successfully');
-        } catch (e) {
-            console.error('Error rendering weather details:', e);
-            weatherDetails.innerHTML = '<div style="padding:20px;">Error loading weather data</div>';
-        }
+        weatherDetails.innerHTML = leftHtml + rightHtml;
     }
 
 function fetchDetailedWeather(cb) {
-    clientLog('info', '=== fetchDetailedWeather called ===');
     var locInput = document.getElementById('weatherLocation');
     var location = (locInput && locInput.value) ? locInput.value.trim() : '';
     var saved = null;
     try { saved = localStorage.getItem('cosy-weather-location'); } catch (e) { saved = null; }
     if (!location && saved) location = saved;
-    clientLog('info', 'Using location:', location);
     var status = document.getElementById('weatherStatus');
 
-    // Simple XHR function for server proxy calls only
     function xhrGet(url, callback) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    var data = null;
-                    try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
-                    callback(null, data);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try { callback(null, JSON.parse(xhr.responseText)); } catch (e) { callback(e); }
                 } else {
-                    callback('error', null);
+                    callback(new Error('Status ' + xhr.status));
                 }
+                cb(buildWeatherDetails(weatherData, locationLabel));
             }
-        };
-        xhr.onerror = function() {
-            callback('error', null);
         };
         xhr.send();
     }
 
     function loadWeatherByCoords(lat, lon, locationLabel) {
-        var proxyUrl = '/proxy/detailed-weather?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon);
-        console.log('Making detailed weather request via server proxy:', proxyUrl);
-        xhrGet(proxyUrl, function(err, weatherData) {
-            console.log('Server proxy response - err:', err, 'data:', weatherData);
-            var details = buildWeatherDetails(weatherData, locationLabel);
-            console.log('Built weather details from server:', details);
-            if (!details || details.summary === "Weather unavailable") {
+        var url = '/proxy/weather?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon);
+        xhrGet(url, function(err, weatherData) {
+            if (err || !weatherData) {
                 cb({ summary: "Weather unavailable" });
-            } else {
-                cb(details);
+                return;
             }
+            cb(buildWeatherDetails(weatherData, locationLabel));
         });
     }
 
-    // Handle case where no location is provided - use geolocation
     if (!location) {
-        console.log('No location provided, using geolocation');
         if (!navigator.geolocation) {
-            console.log('Geolocation not available');
             cb({ summary: "Geolocation not available" });
             return;
         }
         navigator.geolocation.getCurrentPosition(function(pos) {
-            console.log('Geolocation success:', pos.coords);
             loadWeatherByCoords(pos.coords.latitude, pos.coords.longitude, 'Current Location');
-        }, function(err) {
-            console.log('Geolocation error:', err);
+        }, function() {
             cb({ summary: "Location denied" });
         }, { maximumAge: 10 * 60 * 1000, timeout: 10 * 1000 });
         return;
     }
 
-    // Use server proxy for geocoding - no direct API calls
-    var proxyGeoUrl = '/proxy/geocode?name=' + encodeURIComponent(location);
-    console.log('Making geocode request via server proxy:', proxyGeoUrl);
-    xhrGet(proxyGeoUrl, function(err, geoData) {
-        console.log('Geocode server response - err:', err, 'data:', geoData);
+    xhrGet('/proxy/geocode?name=' + encodeURIComponent(location), function(err, geoData) {
         if (err || !geoData || !geoData.results || !geoData.results.length) {
-            console.log('Geocode failed, location not found');
             cb({ summary: "Location not found" });
             return;
         }
         var r = geoData.results[0];
-        console.log('Using geocoded location:', r);
         loadWeatherByCoords(r.latitude, r.longitude, r.name || location);
     });
 }
 
 
     if (weatherCard) {
-        console.log('Weather card found, adding click listener');
-        weatherCard.addEventListener('click', function(e) {
-            clientLog('info', 'Weather card CLICKED!', e);
-            if (weatherCard.classList.contains('expanded')) {
-                clientLog('info', 'Weather card already expanded, ignoring click');
-                return;
-            }
-            clientLog('info', 'Weather card clicked, expanding...');
+        weatherCard.addEventListener('click', function() {
+            if (weatherCard.classList.contains('expanded')) return;
             weatherCard.classList.add('expanded');
             hideOtherCards();
             weatherDetails.style.display = 'flex';
             closeBtn.style.display = 'block';
-            
-            // Show loading state immediately
-            clientLog('info', 'Showing loading state...');
-            renderWeatherDetails({
-                emoji: '⏳',
-                temp: '--',
-                summary: 'Loading...',
-                high: '--',
-                low: '--',
-                location: 'Loading location...',
-                hourly: [],
-                daily: []
+            // OLD: fetchDetailedWeather(function(data) { renderWeatherDetails(data); });
+            // NEW:
+            fetchDetailedWeather(function(data) {
+                renderWeatherDetails(data);
             });
-            
-            clientLog('info', 'Calling fetchDetailedWeather...');
-            // Use pre-loaded data if available, otherwise fetch
-            if (window.weatherData) {
-                clientLog('info', 'Using pre-loaded weather data:', window.weatherData);
-                renderWeatherDetails(window.weatherData);
-            } else {
-                clientLog('info', 'No pre-loaded data, fetching now...');
-                fetchDetailedWeather(function(data) {
-                    clientLog('info', 'Weather data received in callback:', data);
-                    // Always render, even if error
-                    renderWeatherDetails(data);
-                });
-            }
         });
-    } else {
-        console.log('WARNING: weatherCard not found!');
     }
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
@@ -1658,186 +1454,70 @@ function fetchDetailedWeather(cb) {
     }
 })();
 
-// Fetch detailed weather data on page load
-(function() {
-    console.log('Starting weather data fetch on page load...');
-    
-    // Wait for DOM to be ready
-    function initWeatherFetch() {
-        console.log('DOM ready, checking fetchDetailedWeather function...');
-        if (typeof fetchDetailedWeather === 'function') {
-            console.log('fetchDetailedWeather function found, calling it...');
-            fetchDetailedWeather(function(data) {
-                console.log('Weather data loaded on startup:', data);
-                // Store the data globally for the weather card
-                window.weatherData = data;
-            });
-        } else {
-            console.error('fetchDetailedWeather function not found!');
-        }
-    }
-    
-    // Try immediately, then with delays as fallback
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initWeatherFetch);
-    } else {
-        // DOM already loaded
-        setTimeout(initWeatherFetch, 100);
-    }
-})();
-
-// --- WEATHER DATA SHAPER (global scope!) ---
 function buildWeatherDetails(weatherData, locationName) {
-    clientLog('info', 'Building weather details - SIMPLIFIED VERSION');
-    clientLog('info', 'Input weatherData:', weatherData);
-    clientLog('info', 'Input locationName:', locationName);
-    
-    if (!weatherData || !weatherData.current_weather) {
-        clientLog('warn', 'No weather data or current_weather missing');
-        return { summary: "Weather unavailable" };
-    }
-    
+    if (!weatherData || !weatherData.current_weather) return { summary: "Weather unavailable" };
     var cw = weatherData.current_weather;
     var temp = Math.round(cw.temperature);
-    var weatherCode = cw.weathercode || 0;
-    clientLog('info', 'Extracted current temp:', temp);
-    clientLog('info', 'Weather code:', weatherCode);
-    
-    // Use global weather mapping functions with current time
-    var currentTime = weatherData.current_weather.time || new Date().toISOString();
-    var weatherIcon = weatherIconFromCode(weatherCode, currentTime);
-    var weatherText = weatherTextFromCode(weatherCode, currentTime);
-    clientLog('info', 'Weather icon/text:', {icon: weatherIcon, text: weatherText});
-    
-    // Extract high/low from daily data
-    var high = '--', low = '--';
-    if (weatherData.daily && weatherData.daily.temperature_2m_max && weatherData.daily.temperature_2m_min) {
-        high = Math.round(weatherData.daily.temperature_2m_max[0]);
-        low = Math.round(weatherData.daily.temperature_2m_min[0]);
-        clientLog('info', 'Extracted high/low:', {high: high, low: low});
-    }
-    
-    // Extract humidity and wind
-    var humidity = 'N/A', windSpeed = 'N/A', feelsLike = 'N/A', rainChance = 'N/A';
-    if (weatherData.hourly && weatherData.hourly.relative_humidity_2m && weatherData.hourly.relative_humidity_2m.length > 0) {
-        humidity = weatherData.hourly.relative_humidity_2m[0] + '%';
-        clientLog('info', 'Extracted humidity:', humidity);
-    }
-    if (weatherData.hourly && weatherData.hourly.wind_speed_10m && weatherData.hourly.wind_speed_10m.length > 0) {
-        windSpeed = Math.round(weatherData.hourly.wind_speed_10m[0]) + ' km/h';
-        clientLog('info', 'Extracted wind speed:', windSpeed);
-    }
-    if (weatherData.hourly && weatherData.hourly.apparent_temperature && weatherData.hourly.apparent_temperature.length > 0) {
-        feelsLike = Math.round(weatherData.hourly.apparent_temperature[0]) + '°';
-        clientLog('info', 'Extracted feels like:', feelsLike);
-    }
-    if (weatherData.hourly && weatherData.hourly.precipitation_probability && weatherData.hourly.precipitation_probability.length > 0) {
-        rainChance = weatherData.hourly.precipitation_probability[0] + '%';
-        clientLog('info', 'Extracted rain chance:', rainChance);
-    }
-
-    // Extract hourly forecast data (next 12 hours from current time)
-    var hourlyForecast = [];
-    if (weatherData.hourly && weatherData.hourly.time && weatherData.hourly.temperature_2m && weatherData.hourly.weathercode) {
-        var now = new Date();
-        var currentTime = now.getTime();
-        
-        // Find the closest hour index to current time
-        var currentHourIndex = 0;
-        var minTimeDiff = Infinity;
-        
-        for (var k = 0; k < weatherData.hourly.time.length; k++) {
-            var hourTime = new Date(weatherData.hourly.time[k]);
-            var timeDiff = Math.abs(hourTime.getTime() - currentTime);
-            if (timeDiff < minTimeDiff) {
-                minTimeDiff = timeDiff;
-                currentHourIndex = k;
-            }
-        }
-        
-        clientLog('info', 'Found current hour index:', currentHourIndex, 'for time:', weatherData.hourly.time[currentHourIndex]);
-        
-        // Get next 12 hours of data starting from current hour
-        for (var i = currentHourIndex; i < Math.min(currentHourIndex + 12, weatherData.hourly.time.length); i++) {
-            if (weatherData.hourly.temperature_2m[i] !== undefined && weatherData.hourly.weathercode[i] !== undefined) {
-                var hourTime = new Date(weatherData.hourly.time[i]);
-                var displayHour = hourTime.getHours();
-                var timeStr;
-                
-                if (i === currentHourIndex) {
-                    timeStr = 'Now';
-                } else if (displayHour === 0) {
-                    timeStr = '12 AM';
-                } else if (displayHour < 12) {
-                    timeStr = displayHour + ' AM';
-                } else if (displayHour === 12) {
-                    timeStr = '12 PM';
-                } else {
-                    timeStr = (displayHour - 12) + ' PM';
-                }
-                
-                hourlyForecast.push({
-                    time: timeStr,
-                    temp: Math.round(weatherData.hourly.temperature_2m[i]),
-                    icon: weatherIconFromCode(weatherData.hourly.weathercode[i], weatherData.hourly.time[i]),
-                    summary: weatherTextFromCode(weatherData.hourly.weathercode[i], weatherData.hourly.time[i])
-                });
-            }
-        }
-        clientLog('info', 'Extracted hourly forecast:', hourlyForecast.length + ' hours starting from current time');
-    }
-
-    // Extract daily forecast data (next 7 days)
-    var dailyForecast = [];
-    if (weatherData.daily && weatherData.daily.time && weatherData.daily.temperature_2m_max && weatherData.daily.temperature_2m_min && weatherData.daily.weathercode) {
-        for (var j = 0; j < Math.min(7, weatherData.daily.time.length); j++) {
-            if (weatherData.daily.temperature_2m_max[j] !== undefined && weatherData.daily.temperature_2m_min[j] !== undefined) {
-                var dayTime = new Date(weatherData.daily.time[j]);
-                var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                var dayStr = j === 0 ? 'Today' : dayNames[dayTime.getDay()];
-                
-                dailyForecast.push({
-                    day: dayStr,
-                    high: Math.round(weatherData.daily.temperature_2m_max[j]),
-                    low: Math.round(weatherData.daily.temperature_2m_min[j]),
-                    icon: weatherIconFromCode(weatherData.daily.weathercode[j], weatherData.daily.time[j]),
-                    summary: weatherTextFromCode(weatherData.daily.weathercode[j], weatherData.daily.time[j])
-                });
-            }
-        }
-        clientLog('info', 'Extracted daily forecast:', dailyForecast.length + ' days');
-    }
+    var summary = weatherTextFromCode(cw.weathercode);
+    var emoji = weatherIconFromCode(cw.weathercode);
 
     var details = {
-        emoji: weatherIcon,
+        emoji: emoji,
         temp: temp,
-        summary: weatherText,
-        high: high,
-        low: low,
-        location: locationName || 'Unknown',
-        humidity: humidity,
-        windSpeed: windSpeed,
-        feelsLike: feelsLike,
-        rainChance: rainChance,
-        hourly: hourlyForecast,
-        daily: dailyForecast
+        summary: summary,
+        high: "--", low: "--",
+        location: locationName || '',
+        hourly: [],
+        daily: []
     };
-    
-    clientLog('info', 'Built weather details object:', details);
-    clientLog('info', 'Returning details with temp:', details.temp, 'high:', details.high, 'low:', details.low);
+
+    // Defensive check for daily arrays
+    if (
+        weatherData.daily &&
+        Array.isArray(weatherData.daily.temperature_2m_max) &&
+        weatherData.daily.temperature_2m_max.length > 0 &&
+        Array.isArray(weatherData.daily.temperature_2m_min) &&
+        weatherData.daily.temperature_2m_min.length > 0
+    ) {
+        details.high = Math.round(weatherData.daily.temperature_2m_max[0]);
+        details.low = Math.round(weatherData.daily.temperature_2m_min[0]);
+    }
+
+    // Defensive check for hourly arrays
+    if (
+        weatherData.hourly &&
+        Array.isArray(weatherData.hourly.time) &&
+        Array.isArray(weatherData.hourly.temperature_2m) &&
+        Array.isArray(weatherData.hourly.weathercode)
+    ) {
+        for (var i = 0; i < weatherData.hourly.time.length && i < 12; i++) {
+            details.hourly.push({
+                time: weatherData.hourly.time[i].substr(11, 5),
+                temp: Math.round(weatherData.hourly.temperature_2m[i]),
+                summary: weatherTextFromCode(weatherData.hourly.weathercode[i])
+            });
+        }
+    }
+
+    // Defensive check for daily forecast arrays
+    if (
+        weatherData.daily &&
+        Array.isArray(weatherData.daily.time) &&
+        Array.isArray(weatherData.daily.temperature_2m_max) &&
+        Array.isArray(weatherData.daily.temperature_2m_min) &&
+        Array.isArray(weatherData.daily.weathercode) &&
+        Array.isArray(weatherData.daily.precipitation_sum)
+    ) {
+        for (var j = 0; j < weatherData.daily.time.length && j < 10; j++) {
+            details.daily.push({
+                date: weatherData.daily.time[j].substr(5),
+                high: Math.round(weatherData.daily.temperature_2m_max[j]),
+                low: Math.round(weatherData.daily.temperature_2m_min[j]),
+                rain: weatherData.daily.precipitation_sum[j] > 0,
+                summary: weatherTextFromCode(weatherData.daily.weathercode[j])
+            });
+        }
+    }
+    console.log('Weather details for UI:', details); // <-- Add this for debugging!
     return details;
 }
-
-// === STARTUP WEATHER FETCH ===
-console.log('Script loaded, attempting weather fetch...');
-setTimeout(function() {
-    console.log('Timeout reached, calling fetchDetailedWeather...');
-    try {
-        fetchDetailedWeather(function(data) {
-            console.log('STARTUP: Weather data loaded:', data);
-            window.weatherData = data;
-        });
-    } catch (e) {
-        console.error('STARTUP: Error calling fetchDetailedWeather:', e);
-    }
-}, 2000);
