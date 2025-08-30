@@ -27,5 +27,8 @@ client.log
 # API Configuration (contains sensitive keys)
 public/config.js
 
+# SSL Certificates
+certs/
+
 # Backup folders
 public-backup/

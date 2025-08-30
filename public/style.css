@@ -148,7 +148,13 @@ body {
 }
 
 /* Specific Cards (layout is controlled by flex or grid via @supports) */
-.calendar-card { font-size: 1.6em; text-align: center; padding: 12px 12px; box-sizing: border-box; }
+.calendar-card { 
+  font-size: 1.6em; 
+  text-align: center; 
+  padding: 12px 12px; 
+  box-sizing: border-box; 
+  position: relative; /* Allow absolute positioning within */
+}
 
 .calendar {
   width: 100%;
@@ -222,6 +228,37 @@ body {
   cursor: pointer;
 }
 .menu-btn span { display: block; width: 22px; height: 2px; background: var(--menu-btn-span); margin: 3px 0; border-radius: 2px; }
+
+/* Traffic Button */
+.traffic-btn {
+  position: absolute;
+  top: 18px;
+  left: 72px; /* Position to the right of menu button */
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--menu-btn-bg);
+  border: none;
+  box-shadow: var(--btn-shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+  cursor: pointer;
+  color: var(--menu-btn-span);
+  transition: all 0.2s ease;
+}
+
+.traffic-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--hover-shadow);
+}
+
+.traffic-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
 
 .side-menu {
   position: fixed;
@@ -345,6 +382,7 @@ body {
 /* Dark mode menu visuals are handled via CSS variables set by applyTheme */
 .menu-btn { background: var(--menu-btn-bg); }
 .menu-btn span { background: var(--menu-btn-span); }
+.traffic-btn { background: var(--menu-btn-bg); color: var(--menu-btn-span); }
 .side-menu { background: var(--menu-bg); box-shadow: var(--menu-shadow); }
 .side-menu-inner { color: var(--menu-text); }
 .side-menu h3 { color: var(--accent); }
@@ -499,21 +537,22 @@ body.ambient-mode.ambient-darken .secondary-clock {
 }
 
 .weather-card.expanded {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 800px;
-  max-width: 96vw;
-  height: 520px;
-  max-height: 90vh;
-  z-index: 2000;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  z-index: 1000;
   margin: 0 !important;
-  border-radius: 32px;
-  overflow: hidden; /* iOS 10 fix: clip all child content to prevent backdrop-filter corners */
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow-strong);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background: var(--card-bg);
   padding: 0;
   animation: weatherExpand 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
@@ -521,18 +560,18 @@ body.ambient-mode.ambient-darken .secondary-clock {
 
 @keyframes weatherExpand {
   0% {
-    transform: translate(-50%, -50%) scale(0.3);
+    transform: scale(0.9);
     opacity: 0;
     border-radius: 24px;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: scale(1.02);
     opacity: 0.8;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
     opacity: 1;
-    border-radius: 32px;
+    border-radius: 24px;
   }
 }
 
@@ -545,10 +584,31 @@ body.ambient-mode.ambient-darken .secondary-clock {
   width: 100%;
   height: 100%;
   opacity: 1;
+  flex-direction: column;
 }
 
 .weather-card.expanded #closeWeatherDetailsBtn {
   display: block !important;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 20px;
+  width: 40px;
+  height: 40px;
+  color: var(--card-text);
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.weather-card.expanded #closeWeatherDetailsBtn:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 .hide-on-weather-expand {
   opacity: 1;
@@ -564,58 +624,92 @@ body.ambient-mode.ambient-darken .secondary-clock {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.15); /* Light frosted glass background */
-  backdrop-filter: blur(20px); /* Frosted glass blur effect */
-  -webkit-backdrop-filter: blur(20px); /* Safari support */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle glass border */
-  border-radius: 32px; /* Match expanded card border radius */
-  overflow: hidden; /* iOS 10 fix: prevent backdrop-filter from leaking outside rounded corners */
+  border-radius: 24px; /* Match expanded card border radius */
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Hide horizontal scrollbar */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   color: var(--card-text); /* Use theme text color */
+  padding: 20px;
+  box-sizing: border-box;
 }
 .weather-details-left {
-  width: 25%;
-  background: rgba(255, 255, 255, 0.1); /* Slightly more frosted left panel */
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1); /* Slightly more frosted top panel */
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  padding: 32px 12px;
-  margin-right: 32px; /* iOS 10 compatible spacing between left and right */
+  justify-content: space-between; /* Space between left and right sides */
+  padding: 20px 12px;
+  margin-bottom: 20px; /* Space between top and bottom sections */
   box-sizing: border-box;
+  border-radius: 16px;
 }
 
 .weather-details-right {
-  width: 75%;
-  padding: 48px 32px 32px 0;
+  width: 100%;
+  padding: 0;
   box-sizing: border-box;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   font-size: 0.9em; /* Make overall text smaller */
-  flex: 1; /* Take remaining space after left panel and margin */
+  flex: 1; /* Take remaining space */
+  max-height: calc(100% - 120px); /* Reserve space for the top section */
+}
+
+/* Custom scrollbar for weather details */
+.weather-details::-webkit-scrollbar,
+.weather-details-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.weather-details::-webkit-scrollbar-track,
+.weather-details-right::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.weather-details::-webkit-scrollbar-thumb,
+.weather-details-right::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+  opacity: 0.6;
+}
+
+.weather-details::-webkit-scrollbar-thumb:hover,
+.weather-details-right::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  opacity: 0.8;
 }
 .weather-details-icon {
   width: auto;
   height: auto;
-  font-size: 3.5em; /* Slightly smaller icon */
+  font-size: 3em; /* Icon size for horizontal layout */
+  margin-right: 15px;
   margin-bottom: 0;
   margin-top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 .weather-details-temp {
-  font-size: 2.4em; /* Smaller main temperature */
+  font-size: 2.2em; /* Temperature size for horizontal layout */
   font-weight: bold;
-  margin-bottom: 10px;
-  margin-top: 10px;
-  text-align: center;
+  margin-right: 15px;
+  margin-bottom: 0;
+  margin-top: 0;
+  text-align: left;
+  flex-shrink: 0; /* Prevent temperature from shrinking */
 }
 
 .weather-details-summary {
-  font-size: 1.1em; /* Smaller summary text */
-  margin-bottom: 16px;
-  text-align: center;
+  font-size: 1.1em;
+  margin-bottom: 0;
+  text-align: left;
+  flex-grow: 1; /* Allow summary to take available space */
 }
 .weather-details-section {
   margin-bottom: 20px; /* Reduced spacing */
@@ -651,40 +745,39 @@ body.ambient-mode.ambient-darken .secondary-clock {
   backdrop-filter: blur(10px); /* Subtle blur for glass effect */
   -webkit-backdrop-filter: blur(10px); /* Safari support */
   border-radius: 18px;
-  overflow: hidden; /* iOS 10 fix: prevent backdrop-filter leaking */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth horizontal scrolling on iOS */
   padding: 16px 10px; /* Reduced padding */
   margin-bottom: 20px; /* Reduced margin */
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  overflow-x: auto;
-  overflow-y: hidden;
   display: flex;
   flex-direction: row;
   gap: 16px; /* Reduced gap */
   max-width: 100%;
 }
 
-/* Add backdrop for expanded weather card */
-.weather-card.expanded::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: -1;
-  opacity: 0;
-  animation: backdropFadeIn 0.3s ease-out forwards;
+/* Custom scrollbar for hourly forecast */
+.weather-details-hourly-card::-webkit-scrollbar {
+  height: 6px;
 }
 
-@keyframes backdropFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+.weather-details-hourly-card::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
 }
+
+.weather-details-hourly-card::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+  opacity: 0.6;
+}
+
+.weather-details-hourly-card::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  opacity: 0.8;
+}
+
 .weather-hour-block {
   min-width: 70px; /* Narrower blocks */
   flex: 0 0 auto;
@@ -719,7 +812,7 @@ body.ambient-mode.ambient-darken .secondary-clock {
 /* Traffic view styles - should work within the existing card structure */
 .traffic-view {
   width: 100%;
-  height: 350px; /* Fixed height instead of 100% */
+  height: 400px; /* Fixed height instead of 100% */
   display: -webkit-box; /* iOS 10 fallback */
   display: -ms-flexbox;
   display: flex;
@@ -755,6 +848,7 @@ body.ambient-mode.ambient-darken .secondary-clock {
   color: var(--accent);
   font-size: 1.2em; /* Consistent sizing */
   font-weight: 600;
+  font-family: 'Quicksand', sans-serif; /* Match app font */
   -webkit-box-flex: 1; /* iOS 10 fallback */
   -ms-flex: 1 1 auto;
   flex: 1 1 auto;
@@ -771,6 +865,7 @@ body.ambient-mode.ambient-darken .secondary-clock {
   cursor: pointer;
   font-size: 0.8em; /* Updated font size */
   font-weight: 600;
+  font-family: 'Quicksand', sans-serif; /* Match app font */
   transition: all 0.2s ease;
   box-shadow: var(--btn-shadow);
   margin-right: 0;
@@ -784,7 +879,7 @@ body.ambient-mode.ambient-darken .secondary-clock {
 }
 
 .traffic-content {
-  height: 280px; /* Fixed height instead of flex: 1 */
+  height: 380px; /* Increased height to match larger traffic-view */
   display: -webkit-box; /* iOS 10 fallback */
   display: -ms-flexbox;
   display: flex;
@@ -801,20 +896,22 @@ body.ambient-mode.ambient-darken .secondary-clock {
   display: flex;
   -webkit-box-orient: horizontal; /* iOS 10 fallback */
   -webkit-box-direction: normal;
-  gap: 0; /* Remove gap for better control */
+  gap: 8px; /* Small gap between input and button */
   margin-bottom: 12px; /* Smaller margin */
   width: 100%;
   box-sizing: border-box;
+  align-items: center; /* Vertically center items */
 }
 
 .traffic-location input {
-  width: 66%; /* Specific width */
-  margin-right: 8px;
+  flex: 1; /* Input takes remaining space */
+  margin-right: 0;
   margin-bottom: 0;
   padding: 8px;
   border: 2px solid var(--accent);
   border-radius: 8px; /* Smaller radius */
   font-size: 0.95em; /* Updated font size */
+  font-family: 'Quicksand', sans-serif; /* Match app font */
   background: var(--card-bg);
   color: var(--card-text);
   box-sizing: border-box;
@@ -826,31 +923,30 @@ body.ambient-mode.ambient-darken .secondary-clock {
   box-shadow: 0 0 0 2px rgba(168, 92, 122, 0.1);
 }
 
-.traffic-btn {
+.get-traffic-btn {
   background: var(--accent);
   color: var(--card-bg);
   border: none;
-  width: 32%; /* Specific width */
-  padding: 8px 0; /* Updated padding */
+  flex-shrink: 0; /* Don't shrink the button */
+  padding: 8px 16px; /* Horizontal padding for proper button size */
   border-radius: 8px; /* Smaller radius */
   cursor: pointer;
   font-size: 0.95em; /* Updated font size */
   font-weight: 600;
+  font-family: 'Quicksand', sans-serif; /* Match app font */
   transition: all 0.2s ease;
   box-shadow: var(--btn-shadow);
   white-space: nowrap;
-  margin-right: 0;
-  margin-left: 0;
   box-sizing: border-box;
 }
 
-.traffic-btn:hover {
+.get-traffic-btn:hover {
   box-shadow: var(--hover-shadow);
   transform: translateY(-1px);
 }
 
 .traffic-results {
-  height: 220px; /* Fixed height instead of flex: 1 */
+  height: 320px; /* Increased height to show more route results */
   background: rgba(255, 255, 255, 0.2); /* Less opacity */
   border-radius: 12px; /* Smaller radius */
   padding: 12px; /* Smaller padding */
@@ -1023,17 +1119,6 @@ body.ambient-mode.ambient-darken .secondary-clock {
     align-items: flex-start;
     gap: 2px;
   }
-}
-
-/* Make calendar card clickable */
-.calendar-card {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.calendar-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
 }
 
 /* Ensure traffic card doesn't overflow */

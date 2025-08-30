@@ -1440,16 +1440,26 @@ setInterval(function(){
     var mainLayout = document.querySelector('.main-layout');
 
     function hideOtherCards() {
-        var cards = document.querySelectorAll('.card');
-        cards.forEach(function(card) {
-            if (card !== weatherCard) card.classList.add('hide-on-weather-expand');
-        });
+        // Hide the left column entirely when weather is expanded
+        if (leftColumn) {
+            leftColumn.style.display = 'none';
+        }
+        // Hide the main calendar content within the calendar card
+        var calendar = document.querySelector('.calendar');
+        if (calendar) {
+            calendar.style.display = 'none';
+        }
     }
     function showOtherCards() {
-        var cards = document.querySelectorAll('.card');
-        cards.forEach(function(card) {
-            card.classList.remove('hide-on-weather-expand');
-        });
+        // Show the left column again
+        if (leftColumn) {
+            leftColumn.style.display = 'flex';
+        }
+        // Show the main calendar content
+        var calendar = document.querySelector('.calendar');
+        if (calendar) {
+            calendar.style.display = 'block';
+        }
     }
 
     function renderWeatherDetails(data) {
@@ -1468,22 +1478,27 @@ setInterval(function(){
             var daily = Array.isArray(data.daily) ? data.daily : [];
 
             var leftHtml = '<div class="weather-details-left">';
-            leftHtml += '<div class="weather-details-icon" style="font-size:4em;">' + emoji + '</div>';
+            // Left side: icon, temperature, and weather description
+            leftHtml += '<div style="display: flex; align-items: center;">';
+            leftHtml += '<div class="weather-details-icon">' + emoji + '</div>';
             leftHtml += '<div class="weather-details-temp">' + (temp !== '--' ? temp + '°' : '--') + '</div>';
             leftHtml += '<div class="weather-details-summary">' + (summary || '') + '</div>';
             leftHtml += '</div>';
+            // Right side: location and high/low
+            leftHtml += '<div style="display: flex; flex-direction: column; text-align: right; align-items: flex-end;">';
+            leftHtml += '<div class="weather-details-location" style="font-weight: bold; margin-bottom: 5px;">' + location + '</div>';
+            leftHtml += '<div class="weather-details-highlow">High: ' + (high !== '--' ? high + '°' : '--') + ' / Low: ' + (low !== '--' ? low + '°' : '--') + '</div>';
+            leftHtml += '</div>';
+            leftHtml += '</div>';
 
             var rightHtml = '<div class="weather-details-right">';
-            rightHtml += '<div class="weather-details-location">' + location + '</div>';
-            rightHtml += '<div class="weather-details-highlow">High: ' + (high !== '--' ? high + '°' : '--') + ' / Low: ' + (low !== '--' ? low + '°' : '--') + '</div>';
-            
             // Add weather conditions with feels like and rain chance
             var humidity = (typeof data.humidity !== 'undefined') ? data.humidity : 'N/A';
             var windSpeed = (typeof data.windSpeed !== 'undefined') ? data.windSpeed : 'N/A';
             var feelsLike = (typeof data.feelsLike !== 'undefined') ? data.feelsLike : 'N/A';
             var rainChance = (typeof data.rainChance !== 'undefined') ? data.rainChance : 'N/A';
-            rightHtml += '<div class="weather-details-conditions">Feels like: ' + feelsLike + ' | Rain: ' + rainChance + '</div>';
-            rightHtml += '<div class="weather-details-conditions">Humidity: ' + humidity + ' | Wind: ' + windSpeed + '</div>';
+            rightHtml += '<div class="weather-details-conditions" style="margin-bottom: 10px;">Feels like: ' + feelsLike + ' | Rain: ' + rainChance + '</div>';
+            rightHtml += '<div class="weather-details-conditions" style="margin-bottom: 20px;">Humidity: ' + humidity + ' | Wind: ' + windSpeed + '</div>';
             
             rightHtml += '<div class="weather-details-section"><strong>Hourly Forecast</strong><br>';
             rightHtml += '<div class="weather-details-hourly-card">';
@@ -2332,8 +2347,9 @@ setTimeout(function() {
     }
 
     // Event listeners
-    if (calendarCard) {
-        calendarCard.addEventListener('click', function(e) {
+    var trafficBtn = document.getElementById('trafficBtn');
+    if (trafficBtn) {
+        trafficBtn.addEventListener('click', function(e) {
             if (!isTrafficView) {
                 switchToTrafficView();
             }
